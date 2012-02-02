@@ -20,6 +20,7 @@
 #ifndef __RANGE_HPP_2012_01_31__
 #define __RANGE_HPP_2012_01_31__
 
+#include <algorithm>
 #include <functional>
 
 #include "emptyassert.hpp"
@@ -34,6 +35,8 @@ namespace NRaingee
         IRangeImpl<TType>* Impl_;
 
     public:
+        typedef typename TSequenceRangeImpl<TType>::TSizeType_ TSizeType_;
+
         inline explicit TRange(IRangeImpl<TType>* impl = 0)
             : Impl_((impl && !impl->IsEmpty()) ? impl : 0)
         {
@@ -44,9 +47,7 @@ namespace NRaingee
         {
         }
 
-        inline explicit TRange(
-            typename TSequenceRangeImpl<TType>::TSizeType_ size,
-            const TType& value = TType())
+        inline explicit TRange(TSizeType_ size, const TType& value = TType())
             : Impl_(size ? new TSequenceRangeImpl<TType>(size, value) : 0)
         {
         }
@@ -67,6 +68,13 @@ namespace NRaingee
         inline ~TRange()
         {
             delete Impl_;
+        }
+
+        IRangeImpl<TType>* Release()
+        {
+            IRangeImpl<TType>* result = Impl_;
+            Impl_ = 0;
+            return result;
         }
 
         inline bool IsEmpty() const
@@ -90,9 +98,7 @@ namespace NRaingee
 
         inline void Swap(TRange& range)
         {
-            IRangeImpl<TType>* tmp = Impl_;
-            Impl_ = range.Impl_;
-            range.Impl_ = tmp;
+            std::swap(Impl_, range.Impl_);
         }
 
         template <class TCounter>
@@ -120,37 +126,47 @@ namespace NRaingee
             return tmp *= counter;
         }
 
-        inline TRange& operator +=(const TRange& range)
+        inline TRange& operator +=(TRange range)
         {
             if (IsEmpty())
             {
-                *this = range;
+                Swap(range);
             }
             else if (!range.IsEmpty())
             {
                 Impl_ = new TConcatenatedRangesImpl<TType>(Impl_,
-                    range.Impl_->Clone());
+                    range.Release());
             }
             return *this;
         }
 
-        inline TRange operator +(const TRange& range)
+        template <class TCompare>
+        inline TRange& Complement(const TRange& range, TCompare compare)
         {
-            TRange tmp(*this);
-            return tmp += range;
+            if (!IsEmpty() && !range.IsEmpty())
+            {
+                Impl_ = new TComplementedRangesImpl<TType, TCompare>(Impl_,
+                    range.Impl_->Clone(), compare);
+            }
+            return *this;
+        }
+
+        inline TRange& operator -=(const TRange& range)
+        {
+            return Complement(range, std::less<TType>());
         }
 
         template <class TCompare>
-        inline TRange& Unite(const TRange& range, TCompare compare)
+        inline TRange& Unite(TRange range, TCompare compare)
         {
             if (IsEmpty())
             {
-                *this = range;
+                Swap(range);
             }
             else if (!range.IsEmpty())
             {
                 Impl_ = new TUnitedRangesImpl<TType, TCompare>(Impl_,
-                    range.Impl_->Clone(), compare);
+                    range.Release(), compare);
             }
             return *this;
         }
@@ -158,12 +174,6 @@ namespace NRaingee
         inline TRange& operator |=(const TRange& range)
         {
             return Unite(range, std::less<TType>());
-        }
-
-        inline TRange operator |(const TRange& range)
-        {
-            TRange tmp(*this);
-            return tmp |= range;
         }
 
         template <class TCompare>
@@ -185,35 +195,57 @@ namespace NRaingee
         {
             return Intersect(range, std::less<TType>());
         }
-
-        inline TRange operator &(const TRange& range)
-        {
-            TRange tmp(*this);
-            return tmp &= range;
-        }
-
-        template <class TCompare>
-        inline TRange& Complement(const TRange& range, TCompare compare)
-        {
-            if (!IsEmpty() && !range.IsEmpty())
-            {
-                Impl_ = new TComplementedRangesImpl<TType, TCompare>(Impl_,
-                    range.Impl_->Clone(), compare);
-            }
-            return *this;
-        }
-
-        inline TRange& operator -=(const TRange& range)
-        {
-            return Complement(range, std::less<TType>());
-        }
-
-        inline TRange operator -(const TRange& range)
-        {
-            TRange tmp(*this);
-            return tmp -= range;
-        }
     };
+
+    template <class TType, class TAssert>
+    inline TRange<TType, TAssert> operator +(TRange<TType, TAssert> lhs,
+        const TRange<TType, TAssert>& rhs)
+    {
+        lhs += rhs;
+        TRange<TType, TAssert> result;
+        result.Swap(lhs);
+        return result;
+    }
+
+    template <class TType, class TAssert>
+    inline TRange<TType, TAssert> operator -(TRange<TType, TAssert> lhs,
+        const TRange<TType, TAssert>& rhs)
+    {
+        lhs -= rhs;
+        TRange<TType, TAssert> result;
+        result.Swap(lhs);
+        return result;
+    }
+
+    template <class TType, class TAssert>
+    inline TRange<TType, TAssert> operator |(TRange<TType, TAssert> lhs,
+        const TRange<TType, TAssert>& rhs)
+    {
+        lhs |= rhs;
+        TRange<TType, TAssert> result;
+        result.Swap(lhs);
+        return result;
+    }
+
+    template <class TType, class TAssert>
+    inline TRange<TType, TAssert> operator &(TRange<TType, TAssert> lhs,
+        const TRange<TType, TAssert>& rhs)
+    {
+        lhs &= rhs;
+        TRange<TType, TAssert> result;
+        result.Swap(lhs);
+        return result;
+    }
+}
+
+namespace std
+{
+    template <class TType, class TAssert>
+    void swap(NRaingee::TRange<TType, TAssert>& lhs,
+        NRaingee::TRange<TType, TAssert>& rhs)
+    {
+        lhs.Swap(rhs);
+    }
 }
 
 #endif
