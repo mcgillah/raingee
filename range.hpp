@@ -119,13 +119,6 @@ namespace NRaingee
             return *this;
         }
 
-        template <class TCounter>
-        inline TRange operator *(TCounter counter)
-        {
-            TRange tmp(*this);
-            return tmp *= counter;
-        }
-
         inline TRange& operator +=(TRange range)
         {
             if (IsEmpty())
@@ -196,6 +189,16 @@ namespace NRaingee
             return Intersect(range, std::less<TType>());
         }
     };
+
+    template <class TType, class TAssert, class TCounter>
+    inline TRange<TType, TAssert> operator *(TRange<TType, TAssert> lhs,
+        TCounter counter)
+    {
+        lhs *= counter;
+        TRange<TType, TAssert> result;
+        result.Swap(lhs);
+        return result;
+    }
 
     template <class TType, class TAssert>
     inline TRange<TType, TAssert> operator +(TRange<TType, TAssert> lhs,
