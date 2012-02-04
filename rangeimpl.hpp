@@ -48,12 +48,32 @@ namespace NRaingee
     template <class TType>
     class TSequenceRangeImpl: public IRangeImpl<TType>
     {
-        const std::vector<TType> Data_;
-        typename std::vector<TType>::const_iterator Begin_;
-        const typename std::vector<TType>::const_iterator End_;
+        typedef std::vector<TType> TData_;
+        const TData_ Data_;
+        typename TData_::const_iterator Begin_;
+        const typename TData_::const_iterator End_;
+
+        static TData_ ConvertToSequence(IRangeImpl<TType>* range)
+        {
+            TData_ result;
+            while (!range->IsEmpty())
+            {
+                result.push_back(range->Front());
+                range->Pop();
+            }
+            return result;
+        }
 
     public:
-        typedef typename std::vector<TType>::size_type TSizeType_;
+        typedef typename TData_::size_type TSizeType_;
+
+        inline TSequenceRangeImpl(IRangeImpl<TType>* range)
+            : Data_(ConvertToSequence(range))
+            , Begin_(Data_.begin())
+            , End_(Data_.end())
+        {
+            delete range;
+        }
 
         inline TSequenceRangeImpl(TSizeType_ size, const TType& value)
             : Data_(size, value)

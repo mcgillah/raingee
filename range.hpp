@@ -110,6 +110,22 @@ namespace NRaingee
             std::swap(Impl_, range.Impl_);
         }
 
+        inline void Shrink()
+        {
+            if (Impl_)
+            {
+                if (Impl_->IsEmpty())
+                {
+                    delete Impl_;
+                    Impl_ = 0;
+                }
+                else
+                {
+                    Impl_ = new TSequenceRangeImpl<TType>(Impl_);
+                }
+            }
+        }
+
         template <class TCounter>
         inline TRange& operator *=(TCounter counter)
         {
