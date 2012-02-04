@@ -30,13 +30,6 @@
 namespace NRaingee
 {
     template <class TType, class TAssert = TEmptyAssert>
-    class TRange;
-
-    template <class TType, class TAssert, class TCompare>
-    static bool Includes(TRange<TType, TAssert> lhs,
-        TRange<TType, TAssert> rhs, TCompare compare);
-
-    template <class TType, class TAssert>
     class TRange
     {
         IRangeImpl<TType>* Impl_;
@@ -225,7 +218,8 @@ namespace NRaingee
 
         inline TRange& operator |=(TRange range)
         {
-            return Unite(TRange(range.Release(), TNoCheckTag()), std::less<TType>());
+            return Unite(TRange(range.Release(), TNoCheckTag()),
+                std::less<TType>());
         }
 
         friend inline TRange operator |(TRange lhs, TRange rhs)
@@ -251,6 +245,10 @@ namespace NRaingee
             return *this;
         }
 
+        template <class TTypeExt, class TAssertExt>
+        friend bool Includes(TRange<TTypeExt, TAssertExt> lhs,
+            TRange<TTypeExt, TAssertExt> rhs);
+
         inline TRange& operator &=(TRange range)
         {
             return Intersect(TRange(range.Release(), TNoCheckTag()),
@@ -263,13 +261,6 @@ namespace NRaingee
             TRange<TType, TAssert> result;
             result.Swap(lhs);
             return result;
-        }
-
-        friend inline bool Includes(TRange lhs, TRange rhs)
-        {
-            return NRaingee::Includes(TRange(lhs.Release(), TNoCheckTag()),
-                TRange(rhs.Release(), TNoCheckTag()),
-                std::less<TType>());
         }
 
         friend inline bool operator ==(TRange lhs, TRange rhs)
@@ -294,7 +285,7 @@ namespace NRaingee
     };
 
     template <class TType, class TAssert, class TCompare>
-    static bool Includes(TRange<TType, TAssert> lhs,
+    static inline bool Includes(TRange<TType, TAssert> lhs,
         TRange<TType, TAssert> rhs, TCompare compare)
     {
         while (!(lhs.IsEmpty() || rhs.IsEmpty()))
@@ -314,6 +305,18 @@ namespace NRaingee
             }
         }
         return rhs.IsEmpty();
+    }
+
+    template <class TType, class TAssert>
+    static inline bool Includes(TRange<TType, TAssert> lhs,
+        TRange<TType, TAssert> rhs)
+
+    {
+        typedef TRange<TType, TAssert> TRangeType;
+        return Includes(
+            TRangeType(lhs.Release(), typename TRangeType::TNoCheckTag()),
+            TRangeType(rhs.Release(), typename TRangeType::TNoCheckTag()),
+            std::less<TType>());
     }
 
     template <class TType, class TAssert>

@@ -86,7 +86,7 @@ int main()
         Check((r - r2) != (r | r2));
         Check(Includes(r | r2, r));
         Check(!Includes((r - r2) | (r2 - r), r));
-        Check(Includes(r, r));
+        Check(NRaingee::Includes(r, r));
     }
 }
 

@@ -164,10 +164,7 @@ int main()
         {
             filesTags |= r[files.Front()];
         }
-        filesTags -= tags;
-        filesTags.Shrink();
-        Check(filesTags, "2 5 11 12 15 18 21 23 24 28 29 30 31 ");
-        Check(Size(filesTags) == 13);
+        Check(Size(filesTags - tags) == 13);
     }
 }
 
