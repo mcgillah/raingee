@@ -1,6 +1,16 @@
+#include <cstdlib>
+
 #include "range.hpp"
 
 using namespace NRaingee;
+
+void Check(bool a)
+{
+    if (!a)
+    {
+        exit(42);
+    }
+}
 
 #ifdef SPEED_TEST
 
@@ -17,8 +27,6 @@ void Check(TRange<TType> r, const char*)
 }
 
 #else
-
-#include <cstdlib>
 
 #include <iostream>
 #include <sstream>
@@ -138,7 +146,7 @@ int main()
         TRange<int>(a40, a40 + sizeof(a40) / sizeof(a40[0])),
         TRange<int>(a41, a41 + sizeof(a41) / sizeof(a41[0]))
     };
-    int tagsI[] = {4, 9, 13}; // web, it, pdf
+    int tagsI[] = {4, 7, 8, 9, 13}; // web, book, net, it, pdf
     TRange<int> tags(tagsI, tagsI + sizeof(tagsI) / sizeof(tagsI[0]));
     for (int i = 0; i < Cycles; ++i)
     {
@@ -158,7 +166,8 @@ int main()
         }
         filesTags -= tags;
         filesTags.Shrink();
-        Check(filesTags, "2 5 7 8 11 12 15 18 21 23 24 28 29 30 31 ");
+        Check(filesTags, "2 5 11 12 15 18 21 23 24 28 29 30 31 ");
+        Check(Size(filesTags) == 13);
     }
 }
 

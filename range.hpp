@@ -30,6 +30,13 @@
 namespace NRaingee
 {
     template <class TType, class TAssert = TEmptyAssert>
+    class TRange;
+
+    template <class TType, class TAssert, class TCompare>
+    static bool Includes(TRange<TType, TAssert> lhs,
+        TRange<TType, TAssert> rhs, TCompare compare);
+
+    template <class TType, class TAssert>
     class TRange
     {
         IRangeImpl<TType>* Impl_;
@@ -258,32 +265,10 @@ namespace NRaingee
             return result;
         }
 
-        template <class TCompare>
-        bool Includes(TRange rhs, TCompare compare) const
+        friend inline bool Includes(TRange lhs, TRange rhs)
         {
-            TRange lhs(*this);
-            while (!(lhs.IsEmpty() || rhs.IsEmpty()))
-            {
-                if (compare(lhs.Front(), rhs.Front()))
-                {
-                    lhs.Pop();
-                }
-                else if (compare(rhs.Front(), lhs.Front()))
-                {
-                    return false;
-                }
-                else
-                {
-                    lhs.Pop();
-                    rhs.Pop();
-                }
-            }
-            return rhs.IsEmpty();
-        }
-
-        bool Includes(TRange rhs) const
-        {
-            return Includes(TRange(rhs.Release(), TNoCheckTag()),
+            return NRaingee::Includes(TRange(lhs.Release(), TNoCheckTag()),
+                TRange(rhs.Release(), TNoCheckTag()),
                 std::less<TType>());
         }
 
@@ -307,6 +292,43 @@ namespace NRaingee
                 == TRange(rhs.Release(), TNoCheckTag()));
         }
     };
+
+    template <class TType, class TAssert, class TCompare>
+    static bool Includes(TRange<TType, TAssert> lhs,
+        TRange<TType, TAssert> rhs, TCompare compare)
+    {
+        while (!(lhs.IsEmpty() || rhs.IsEmpty()))
+        {
+            if (compare(lhs.Front(), rhs.Front()))
+            {
+                lhs.Pop();
+            }
+            else if (compare(rhs.Front(), lhs.Front()))
+            {
+                return false;
+            }
+            else
+            {
+                lhs.Pop();
+                rhs.Pop();
+            }
+        }
+        return rhs.IsEmpty();
+    }
+
+    template <class TType, class TAssert>
+    static inline typename TRange<TType, TAssert>::TSizeType_ Size(
+        TRange<TType, TAssert> range)
+    {
+        typedef typename TRange<TType, TAssert>::TSizeType_ TSizeType;
+        TSizeType result = TSizeType();
+        while (!range.IsEmpty())
+        {
+            ++result;
+            range.Pop();
+        }
+        return result;
+    }
 }
 
 namespace std

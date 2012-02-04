@@ -84,8 +84,9 @@ int main()
         Check((r - r2) | (r2 - r), "1 3 4 6 9 ");
         Check((TRange<int>(1, 5) + TRange<int>(1, 7)) == (r & r2));
         Check((r - r2) != (r | r2));
-        Check((r | r2).Includes(r));
-        Check(!((r - r2) | (r2 - r)).Includes(r));
+        Check(Includes(r | r2, r));
+        Check(!Includes((r - r2) | (r2 - r), r));
+        Check(Includes(r, r));
     }
 }
 
