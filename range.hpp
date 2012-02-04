@@ -34,6 +34,15 @@ namespace NRaingee
     {
         IRangeImpl<TType>* Impl_;
 
+        struct TNoCheckTag
+        {
+        };
+
+        inline TRange(IRangeImpl<TType>* impl, TNoCheckTag)
+            : Impl_(impl)
+        {
+        }
+
     public:
         typedef typename TSequenceRangeImpl<TType>::TSizeType_ TSizeType_;
 
@@ -119,6 +128,15 @@ namespace NRaingee
             return *this;
         }
 
+        template <class TCounter>
+        friend inline TRange operator *(TRange lhs, TCounter counter)
+        {
+            lhs *= counter;
+            TRange<TType, TAssert> result;
+            result.Swap(lhs);
+            return result;
+        }
+
         inline TRange& operator +=(TRange range)
         {
             if (IsEmpty())
@@ -133,20 +151,38 @@ namespace NRaingee
             return *this;
         }
 
+        friend inline TRange operator +(TRange<TType, TAssert> lhs,
+            TRange<TType, TAssert> rhs)
+        {
+            lhs += TRange(rhs.Release(), TNoCheckTag());
+            TRange<TType, TAssert> result;
+            result.Swap(lhs);
+            return result;
+        }
+
         template <class TCompare>
-        inline TRange& Complement(const TRange& range, TCompare compare)
+        inline TRange& Complement(TRange range, TCompare compare)
         {
             if (!IsEmpty() && !range.IsEmpty())
             {
                 Impl_ = new TComplementedRangesImpl<TType, TCompare>(Impl_,
-                    range.Impl_->Clone(), compare);
+                    range.Release(), compare);
             }
             return *this;
         }
 
-        inline TRange& operator -=(const TRange& range)
+        inline TRange& operator -=(TRange range)
         {
-            return Complement(range, std::less<TType>());
+            return Complement(TRange(range.Release(), TNoCheckTag()),
+                std::less<TType>());
+        }
+
+        friend inline TRange operator -(TRange lhs, TRange rhs)
+        {
+            lhs -= TRange(rhs.Release(), TNoCheckTag());;
+            TRange<TType, TAssert> result;
+            result.Swap(lhs);
+            return result;
         }
 
         template <class TCompare>
@@ -164,13 +200,21 @@ namespace NRaingee
             return *this;
         }
 
-        inline TRange& operator |=(const TRange& range)
+        inline TRange& operator |=(TRange range)
         {
-            return Unite(range, std::less<TType>());
+            return Unite(TRange(range.Release(), TNoCheckTag()), std::less<TType>());
+        }
+
+        friend inline TRange operator |(TRange lhs, TRange rhs)
+        {
+            lhs |= TRange(rhs.Release(), TNoCheckTag());
+            TRange<TType, TAssert> result;
+            result.Swap(lhs);
+            return result;
         }
 
         template <class TCompare>
-        inline TRange& Intersect(const TRange& range, TCompare compare)
+        inline TRange& Intersect(TRange range, TCompare compare)
         {
             if (IsEmpty() || range.IsEmpty())
             {
@@ -179,72 +223,80 @@ namespace NRaingee
             else
             {
                 Impl_ = new TIntersectedRangesImpl<TType, TCompare>(Impl_,
-                    range.Impl_->Clone(), compare);
+                    range.Release(), compare);
             }
             return *this;
         }
 
-        inline TRange& operator &=(const TRange& range)
+        inline TRange& operator &=(TRange range)
         {
-            return Intersect(range, std::less<TType>());
+            return Intersect(TRange(range.Release(), TNoCheckTag()),
+                std::less<TType>());
+        }
+
+        friend inline TRange operator &(TRange lhs, TRange rhs)
+        {
+            lhs &= TRange(rhs.Release(), TNoCheckTag());
+            TRange<TType, TAssert> result;
+            result.Swap(lhs);
+            return result;
+        }
+
+        template <class TCompare>
+        bool Includes(TRange rhs, TCompare compare) const
+        {
+            TRange lhs(*this);
+            while (!(lhs.IsEmpty() || rhs.IsEmpty()))
+            {
+                if (compare(lhs.Front(), rhs.Front()))
+                {
+                    lhs.Pop();
+                }
+                else if (compare(rhs.Front(), lhs.Front()))
+                {
+                    return false;
+                }
+                else
+                {
+                    lhs.Pop();
+                    rhs.Pop();
+                }
+            }
+            return rhs.IsEmpty();
+        }
+
+        bool Includes(TRange rhs) const
+        {
+            return Includes(TRange(rhs.Release(), TNoCheckTag()),
+                std::less<TType>());
+        }
+
+        friend inline bool operator ==(TRange lhs, TRange rhs)
+        {
+            while(!(lhs.IsEmpty() || rhs.IsEmpty()))
+            {
+                if (lhs.Front() != rhs.Front())
+                {
+                    return false;
+                }
+                lhs.Pop();
+                rhs.Pop();
+            }
+            return lhs.IsEmpty() && rhs.IsEmpty();
+        }
+
+        friend inline bool operator !=(TRange lhs, TRange rhs)
+        {
+            return !(TRange(lhs.Release(), TNoCheckTag())
+                == TRange(rhs.Release(), TNoCheckTag()));
         }
     };
-
-    template <class TType, class TAssert, class TCounter>
-    inline TRange<TType, TAssert> operator *(TRange<TType, TAssert> lhs,
-        TCounter counter)
-    {
-        lhs *= counter;
-        TRange<TType, TAssert> result;
-        result.Swap(lhs);
-        return result;
-    }
-
-    template <class TType, class TAssert>
-    inline TRange<TType, TAssert> operator +(TRange<TType, TAssert> lhs,
-        const TRange<TType, TAssert>& rhs)
-    {
-        lhs += rhs;
-        TRange<TType, TAssert> result;
-        result.Swap(lhs);
-        return result;
-    }
-
-    template <class TType, class TAssert>
-    inline TRange<TType, TAssert> operator -(TRange<TType, TAssert> lhs,
-        const TRange<TType, TAssert>& rhs)
-    {
-        lhs -= rhs;
-        TRange<TType, TAssert> result;
-        result.Swap(lhs);
-        return result;
-    }
-
-    template <class TType, class TAssert>
-    inline TRange<TType, TAssert> operator |(TRange<TType, TAssert> lhs,
-        const TRange<TType, TAssert>& rhs)
-    {
-        lhs |= rhs;
-        TRange<TType, TAssert> result;
-        result.Swap(lhs);
-        return result;
-    }
-
-    template <class TType, class TAssert>
-    inline TRange<TType, TAssert> operator &(TRange<TType, TAssert> lhs,
-        const TRange<TType, TAssert>& rhs)
-    {
-        lhs &= rhs;
-        TRange<TType, TAssert> result;
-        result.Swap(lhs);
-        return result;
-    }
 }
 
 namespace std
 {
     template <class TType, class TAssert>
-    void swap(NRaingee::TRange<TType, TAssert>& lhs,
+    inline void swap(NRaingee::TRange<TType, TAssert>& lhs,
         NRaingee::TRange<TType, TAssert>& rhs)
     {
         lhs.Swap(rhs);

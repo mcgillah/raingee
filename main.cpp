@@ -1,6 +1,16 @@
+#include <cstdlib>
+
 #include "range.hpp"
 
 using namespace NRaingee;
+
+void Check(bool a)
+{
+    if (!a)
+    {
+        exit(42);
+    }
+}
 
 #ifdef SPEED_TEST
 
@@ -17,8 +27,6 @@ void Check(TRange<TType> r, const char*)
 }
 
 #else
-
-#include <cstdlib>
 
 #include <iostream>
 #include <sstream>
@@ -68,10 +76,16 @@ int main()
         Check((r + r + r) * 2 - (r * 2 - r) * 5, "1 3 5 7 9 ");
         Check(r * 0, "");
         Check(r | r2, "1 3 4 5 6 7 9 ");
+        Check((r | r2) & (r2 | r), "1 3 4 5 6 7 9 ");
+        Check(((r | r2) & (r2 | r)) & r, "1 3 5 7 9 ");
         Check(r & r2, "5 7 ");
         Check(r - r2, "1 3 9 ");
         Check(r2 - r, "4 6 ");
         Check((r - r2) | (r2 - r), "1 3 4 6 9 ");
+        Check((TRange<int>(1, 5) + TRange<int>(1, 7)) == (r & r2));
+        Check((r - r2) != (r | r2));
+        Check((r | r2).Includes(r));
+        Check(!((r - r2) | (r2 - r)).Includes(r));
     }
 }
 
