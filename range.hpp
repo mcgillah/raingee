@@ -34,20 +34,16 @@ namespace NRaingee
     {
         IRangeImpl<TType>* Impl_;
 
-        struct TNoCheckTag
-        {
-        };
-
-        inline TRange(IRangeImpl<TType>* impl, TNoCheckTag)
-            : Impl_(impl)
-        {
-        }
-
     public:
         typedef typename TSequenceRangeImpl<TType>::TSizeType_ TSizeType_;
 
-        inline explicit TRange(IRangeImpl<TType>* impl = 0)
-            : Impl_((impl && !impl->IsEmpty()) ? impl : 0)
+        inline TRange()
+            : Impl_()
+        {
+        }
+
+        inline explicit TRange(IRangeImpl<TType>* impl)
+            : Impl_(impl)
         {
         }
 
@@ -170,7 +166,7 @@ namespace NRaingee
         friend inline TRange operator +(TRange<TType, TAssert> lhs,
             TRange<TType, TAssert> rhs)
         {
-            lhs += TRange(rhs.Release(), TNoCheckTag());
+            lhs += TRange(rhs.Release());
             TRange<TType, TAssert> result;
             result.Swap(lhs);
             return result;
@@ -189,13 +185,13 @@ namespace NRaingee
 
         inline TRange& operator -=(TRange range)
         {
-            return Complement(TRange(range.Release(), TNoCheckTag()),
+            return Complement(TRange(range.Release()),
                 std::less<TType>());
         }
 
         friend inline TRange operator -(TRange lhs, TRange rhs)
         {
-            lhs -= TRange(rhs.Release(), TNoCheckTag());;
+            lhs -= TRange(rhs.Release());;
             TRange<TType, TAssert> result;
             result.Swap(lhs);
             return result;
@@ -218,13 +214,13 @@ namespace NRaingee
 
         inline TRange& operator |=(TRange range)
         {
-            return Unite(TRange(range.Release(), TNoCheckTag()),
+            return Unite(TRange(range.Release()),
                 std::less<TType>());
         }
 
         friend inline TRange operator |(TRange lhs, TRange rhs)
         {
-            lhs |= TRange(rhs.Release(), TNoCheckTag());
+            lhs |= TRange(rhs.Release());
             TRange<TType, TAssert> result;
             result.Swap(lhs);
             return result;
@@ -245,19 +241,15 @@ namespace NRaingee
             return *this;
         }
 
-        template <class TTypeExt, class TAssertExt>
-        friend bool Includes(TRange<TTypeExt, TAssertExt> lhs,
-            TRange<TTypeExt, TAssertExt> rhs);
-
         inline TRange& operator &=(TRange range)
         {
-            return Intersect(TRange(range.Release(), TNoCheckTag()),
+            return Intersect(TRange(range.Release()),
                 std::less<TType>());
         }
 
         friend inline TRange operator &(TRange lhs, TRange rhs)
         {
-            lhs &= TRange(rhs.Release(), TNoCheckTag());
+            lhs &= TRange(rhs.Release());
             TRange<TType, TAssert> result;
             result.Swap(lhs);
             return result;
@@ -279,8 +271,8 @@ namespace NRaingee
 
         friend inline bool operator !=(TRange lhs, TRange rhs)
         {
-            return !(TRange(lhs.Release(), TNoCheckTag())
-                == TRange(rhs.Release(), TNoCheckTag()));
+            return !(TRange(lhs.Release())
+                == TRange(rhs.Release()));
         }
     };
 
@@ -313,9 +305,7 @@ namespace NRaingee
 
     {
         typedef TRange<TType, TAssert> TRangeType;
-        return Includes(
-            TRangeType(lhs.Release(), typename TRangeType::TNoCheckTag()),
-            TRangeType(rhs.Release(), typename TRangeType::TNoCheckTag()),
+        return Includes(TRangeType(lhs.Release()), TRangeType(rhs.Release()),
             std::less<TType>());
     }
 
