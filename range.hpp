@@ -20,7 +20,6 @@
 #ifndef __RANGE_HPP_2012_01_31__
 #define __RANGE_HPP_2012_01_31__
 
-#include <algorithm>
 #include <functional>
 
 #include "emptyassert.hpp"
@@ -103,7 +102,9 @@ namespace NRaingee
 
         inline void Swap(TRange& range)
         {
-            std::swap(Impl_, range.Impl_);
+            IRangeImpl<TType>* tmp = Impl_;
+            Impl_ = range.Impl_;
+            range.Impl_ = tmp;
         }
 
         inline void Shrink()
@@ -320,13 +321,10 @@ namespace NRaingee
         }
         return result;
     }
-}
 
-namespace std
-{
     template <class TType, class TAssert>
-    inline void swap(NRaingee::TRange<TType, TAssert>& lhs,
-        NRaingee::TRange<TType, TAssert>& rhs)
+    static inline void swap(TRange<TType, TAssert>& lhs,
+        TRange<TType, TAssert>& rhs)
     {
         lhs.Swap(rhs);
     }
