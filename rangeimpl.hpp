@@ -49,7 +49,36 @@ namespace NRaingee
     class TSequenceRangeImpl: public IRangeImpl<TType>
     {
         typedef std::vector<TType> TData_;
-        const TData_ Data_;
+
+        class TSharedStorage_
+        {
+            const TData_ Data_;
+            unsigned Counter_;
+
+        public:
+            inline TSharedStorage_(TData_ data)
+                : Data_(data)
+                , Counter_(1)
+            {
+            }
+
+            inline void IncreaseCounter()
+            {
+                ++Counter_;
+            }
+
+            inline unsigned DecreaseCounter()
+            {
+                return --Counter_;
+            }
+
+            inline const TData_& GetData() const
+            {
+                return Data_;
+            }
+        };
+
+        TSharedStorage_* const Storage_;
         typename TData_::const_iterator Begin_;
         const typename TData_::const_iterator End_;
 
@@ -64,30 +93,46 @@ namespace NRaingee
             return result;
         }
 
+        inline TSequenceRangeImpl(const TSequenceRangeImpl* range)
+            : Storage_(range->Storage_)
+            , Begin_(range->Begin_)
+            , End_(range->End_)
+        {
+            Storage_->IncreaseCounter();
+        }
+
     public:
         typedef typename TData_::size_type TSizeType_;
 
         inline TSequenceRangeImpl(IRangeImpl<TType>* range)
-            : Data_(ConvertToSequence(range))
-            , Begin_(Data_.begin())
-            , End_(Data_.end())
+            : Storage_(new TSharedStorage_(TData_(ConvertToSequence(range))))
+            , Begin_(Storage_->GetData().begin())
+            , End_(Storage_->GetData().end())
         {
             delete range;
         }
 
         inline TSequenceRangeImpl(TSizeType_ size, const TType& value)
-            : Data_(size, value)
-            , Begin_(Data_.begin())
-            , End_(Data_.end())
+            : Storage_(new TSharedStorage_(TData_(size, value)))
+            , Begin_(Storage_->GetData().begin())
+            , End_(Storage_->GetData().end())
         {
         }
 
         template <class TInputIterator>
         inline TSequenceRangeImpl(TInputIterator first, TInputIterator last)
-            : Data_(first, last)
-            , Begin_(Data_.begin())
-            , End_(Data_.end())
+            : Storage_(new TSharedStorage_(TData_(first, last)))
+            , Begin_(Storage_->GetData().begin())
+            , End_(Storage_->GetData().end())
         {
+        }
+
+        inline ~TSequenceRangeImpl()
+        {
+            if (!Storage_->DecreaseCounter())
+            {
+                delete Storage_;
+            }
         }
 
         inline bool IsEmpty() const
@@ -107,7 +152,7 @@ namespace NRaingee
 
         inline IRangeImpl<TType>* Clone() const
         {
-            return new TSequenceRangeImpl(Begin_, End_);
+            return new TSequenceRangeImpl(this);
         }
     };
 
