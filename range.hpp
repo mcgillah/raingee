@@ -140,15 +140,6 @@ namespace NRaingee
             return *this;
         }
 
-        template <class TCounter>
-        friend inline TRange operator *(TRange lhs, TCounter counter)
-        {
-            lhs *= counter;
-            TRange<TType, TAssert> result;
-            result.Swap(lhs);
-            return result;
-        }
-
         inline TRange& operator +=(TRange range)
         {
             if (IsEmpty())
@@ -163,11 +154,10 @@ namespace NRaingee
             return *this;
         }
 
-        friend inline TRange operator +(TRange<TType, TAssert> lhs,
-            TRange<TType, TAssert> rhs)
+        friend inline TRange operator +(TRange lhs, TRange rhs)
         {
             lhs += TRange(rhs.Release());
-            TRange<TType, TAssert> result;
+            TRange result;
             result.Swap(lhs);
             return result;
         }
@@ -192,7 +182,7 @@ namespace NRaingee
         friend inline TRange operator -(TRange lhs, TRange rhs)
         {
             lhs -= TRange(rhs.Release());;
-            TRange<TType, TAssert> result;
+            TRange result;
             result.Swap(lhs);
             return result;
         }
@@ -216,14 +206,6 @@ namespace NRaingee
         {
             return Unite(TRange(range.Release()),
                 std::less<TType>());
-        }
-
-        friend inline TRange operator |(TRange lhs, TRange rhs)
-        {
-            lhs |= TRange(rhs.Release());
-            TRange<TType, TAssert> result;
-            result.Swap(lhs);
-            return result;
         }
 
         template <class TCompare>
@@ -250,7 +232,7 @@ namespace NRaingee
         friend inline TRange operator &(TRange lhs, TRange rhs)
         {
             lhs &= TRange(rhs.Release());
-            TRange<TType, TAssert> result;
+            TRange result;
             result.Swap(lhs);
             return result;
         }
@@ -275,6 +257,26 @@ namespace NRaingee
                 == TRange(rhs.Release()));
         }
     };
+
+    template <class TType, class TAssert, class TCounter>
+    static inline TRange<TType, TAssert> operator *(TRange<TType, TAssert> lhs,
+        TCounter counter)
+    {
+        lhs *= counter;
+        TRange<TType, TAssert> result;
+        result.Swap(lhs);
+        return result;
+    }
+
+    template <class TType, class TAssert>
+    static inline TRange<TType, TAssert> operator |(TRange<TType, TAssert> lhs,
+        TRange<TType, TAssert> rhs)
+    {
+        lhs |= TRange<TType, TAssert>(rhs.Release());
+        TRange<TType, TAssert> result;
+        result.Swap(lhs);
+        return result;
+    }
 
     template <class TType, class TAssert, class TCompare>
     static inline bool Includes(TRange<TType, TAssert> lhs,
