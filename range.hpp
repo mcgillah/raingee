@@ -175,8 +175,7 @@ namespace NRaingee
 
         inline TRange& operator -=(TRange range)
         {
-            return Complement(TRange(range.Release()),
-                std::less<TType>());
+            return Complement(TRange(range.Release()), std::less<TType>());
         }
 
         friend inline TRange operator -(TRange lhs, TRange rhs)
@@ -204,8 +203,7 @@ namespace NRaingee
 
         inline TRange& operator |=(TRange range)
         {
-            return Unite(TRange(range.Release()),
-                std::less<TType>());
+            return Unite(TRange(range.Release()), std::less<TType>());
         }
 
         template <class TCompare>
@@ -225,8 +223,7 @@ namespace NRaingee
 
         inline TRange& operator &=(TRange range)
         {
-            return Intersect(TRange(range.Release()),
-                std::less<TType>());
+            return Intersect(TRange(range.Release()), std::less<TType>());
         }
 
         friend inline TRange operator &(TRange lhs, TRange rhs)
@@ -253,8 +250,7 @@ namespace NRaingee
 
         friend inline bool operator !=(TRange lhs, TRange rhs)
         {
-            return !(TRange(lhs.Release())
-                == TRange(rhs.Release()));
+            return !(TRange(lhs.Release()) == TRange(rhs.Release()));
         }
     };
 
