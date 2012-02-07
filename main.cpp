@@ -66,6 +66,8 @@ int main()
     TRange<int> r(a, a + sizeof(a) / sizeof(a[0]));
     int b[] = {4, 5, 6, 7};
     TRange<int> r2(b, b + sizeof(b) / sizeof(b[0]));
+    int c[] = {1, 2, 3, 4, 9};
+    TRange<int> r3(c, c + sizeof(c) / sizeof(c[0]));
     for (int i = 0; i < Cycles; ++i)
     {
         Check(r, "1 3 5 7 9 ");
@@ -87,6 +89,16 @@ int main()
         Check(Includes(r | r2, r));
         Check(!Includes((r - r2) | (r2 - r), r));
         Check(NRaingee::Includes(r, r));
+        Check(r & r3, "1 3 9 ");
+        Check(r3 & r, "1 3 9 ");
+        Check(r & r2 & r3, "");
+        Check(r | r3, "1 2 3 4 5 7 9 ");
+        Check(r3 | r, "1 2 3 4 5 7 9 ");
+        Check(r2 | r3, "1 2 3 4 5 6 7 9 ");
+        Check(r | r2 | r3, "1 2 3 4 5 6 7 9 ");
+        Check(r - r3, "5 7 ");
+        Check(r3 - r, "2 4 ");
+        Check(r3 - r2 - r, "2 ");
     }
 }
 

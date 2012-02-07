@@ -291,15 +291,18 @@ namespace NRaingee
         IRangeImpl<TType>* const Second_;
         IRangeImpl<TType>* ActiveRange_;
         TCompare Compare_;
+        bool PopBoth_;
 
     public:
         inline TUnitedRangesImpl(IRangeImpl<TType>* first,
             IRangeImpl<TType>* second, TCompare compare)
             : First_(first)
             , Second_(second)
-            , ActiveRange_(Compare_(Second_->Front(), First_->Front()) ?
-                Second_ : First_)
+            , ActiveRange_(Compare_(First_->Front(), Second_->Front()) ?
+                First_ : Second_)
             , Compare_(compare)
+            , PopBoth_(ActiveRange_ == Second_
+                && !Compare_(Second_->Front(), First_->Front()))
         {
         }
 
@@ -316,14 +319,15 @@ namespace NRaingee
 
         inline void Pop()
         {
-            if (ActiveRange_)
-            {
-                ActiveRange_->Pop();
-            }
-            else
+            if (PopBoth_)
             {
                 First_->Pop();
                 Second_->Pop();
+                PopBoth_ = false;
+            }
+            else
+            {
+                ActiveRange_->Pop();
             }
 
             if (First_->IsEmpty())
@@ -338,26 +342,19 @@ namespace NRaingee
             {
                 ActiveRange_ = First_;
             }
-            else if (Compare_(Second_->Front(), First_->Front()))
-            {
-                ActiveRange_ = Second_;
-            }
             else
             {
-                ActiveRange_ = 0;
+                ActiveRange_ = Second_;
+                if (!Compare_(Second_->Front(), First_->Front()))
+                {
+                    PopBoth_ = true;
+                }
             }
         }
 
         inline const TType& Front() const
         {
-            if (ActiveRange_)
-            {
-                return ActiveRange_->Front();
-            }
-            else
-            {
-                return First_->Front();
-            }
+            return ActiveRange_->Front();
         }
 
         inline IRangeImpl<TType>* Clone() const
