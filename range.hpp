@@ -252,13 +252,13 @@ namespace NRaingee
         return TRange<TType, TAssert>(lhs.Release());
     }
 
-    template <class TType, class TAssert>
-    static inline bool operator ==(TRange<TType, TAssert> lhs,
-        TRange<TType, TAssert> rhs)
+    template <class TType, class TAssert, class TCompare>
+    static inline bool Equal(TRange<TType, TAssert> lhs,
+        TRange<TType, TAssert> rhs, TCompare compare)
     {
         while(!(lhs.IsEmpty() || rhs.IsEmpty()))
         {
-            if (lhs.Front() != rhs.Front())
+            if (!compare(lhs.Front(), rhs.Front()))
             {
                 return false;
             }
@@ -266,6 +266,15 @@ namespace NRaingee
             rhs.Pop();
         }
         return lhs.IsEmpty() && rhs.IsEmpty();
+    }
+
+    template <class TType, class TAssert>
+    static inline bool operator ==(TRange<TType, TAssert> lhs,
+        TRange<TType, TAssert> rhs)
+    {
+        return Equal(TRange<TType, TAssert>(lhs.Release()),
+            TRange<TType, TAssert>(rhs.Release()),
+            std::equal_to<TType>());
     }
 
     template <class TType, class TAssert>
