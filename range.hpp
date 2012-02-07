@@ -155,14 +155,6 @@ namespace NRaingee
             return *this;
         }
 
-        friend inline TRange operator +(TRange lhs, TRange rhs)
-        {
-            lhs += TRange(rhs.Release());
-            TRange result;
-            result.Swap(lhs);
-            return result;
-        }
-
         template <class TCompare>
         inline TRange& Complement(TRange range, TCompare compare)
         {
@@ -177,14 +169,6 @@ namespace NRaingee
         inline TRange& operator -=(TRange range)
         {
             return Complement(TRange(range.Release()), std::less<TType>());
-        }
-
-        friend inline TRange operator -(TRange lhs, TRange rhs)
-        {
-            lhs -= TRange(rhs.Release());;
-            TRange result;
-            result.Swap(lhs);
-            return result;
         }
 
         template <class TCompare>
@@ -226,33 +210,6 @@ namespace NRaingee
         {
             return Intersect(TRange(range.Release()), std::less<TType>());
         }
-
-        friend inline TRange operator &(TRange lhs, TRange rhs)
-        {
-            lhs &= TRange(rhs.Release());
-            TRange result;
-            result.Swap(lhs);
-            return result;
-        }
-
-        friend inline bool operator ==(TRange lhs, TRange rhs)
-        {
-            while(!(lhs.IsEmpty() || rhs.IsEmpty()))
-            {
-                if (lhs.Front() != rhs.Front())
-                {
-                    return false;
-                }
-                lhs.Pop();
-                rhs.Pop();
-            }
-            return lhs.IsEmpty() && rhs.IsEmpty();
-        }
-
-        friend inline bool operator !=(TRange lhs, TRange rhs)
-        {
-            return !(TRange(lhs.Release()) == TRange(rhs.Release()));
-        }
     };
 
     template <class TType, class TAssert, class TCounter>
@@ -260,9 +217,23 @@ namespace NRaingee
         TCounter counter)
     {
         lhs *= counter;
-        TRange<TType, TAssert> result;
-        result.Swap(lhs);
-        return result;
+        return TRange<TType, TAssert>(lhs.Release());
+    }
+
+    template <class TType, class TAssert>
+    static inline TRange<TType, TAssert> operator +(TRange<TType, TAssert> lhs,
+        TRange<TType, TAssert> rhs)
+    {
+        lhs += TRange<TType, TAssert>(rhs.Release());
+        return TRange<TType, TAssert>(lhs.Release());
+    }
+
+    template <class TType, class TAssert>
+    static inline TRange<TType, TAssert> operator -(TRange<TType, TAssert> lhs,
+        TRange<TType, TAssert> rhs)
+    {
+        lhs -= TRange<TType, TAssert>(rhs.Release());
+        return TRange<TType, TAssert>(lhs.Release());
     }
 
     template <class TType, class TAssert>
@@ -270,9 +241,39 @@ namespace NRaingee
         TRange<TType, TAssert> rhs)
     {
         lhs |= TRange<TType, TAssert>(rhs.Release());
-        TRange<TType, TAssert> result;
-        result.Swap(lhs);
-        return result;
+        return TRange<TType, TAssert>(lhs.Release());
+    }
+
+    template <class TType, class TAssert>
+    static inline TRange<TType, TAssert> operator &(TRange<TType, TAssert> lhs,
+        TRange<TType, TAssert> rhs)
+    {
+        lhs &= TRange<TType, TAssert>(rhs.Release());
+        return TRange<TType, TAssert>(lhs.Release());
+    }
+
+    template <class TType, class TAssert>
+    static inline bool operator ==(TRange<TType, TAssert> lhs,
+        TRange<TType, TAssert> rhs)
+    {
+        while(!(lhs.IsEmpty() || rhs.IsEmpty()))
+        {
+            if (lhs.Front() != rhs.Front())
+            {
+                return false;
+            }
+            lhs.Pop();
+            rhs.Pop();
+        }
+        return lhs.IsEmpty() && rhs.IsEmpty();
+    }
+
+    template <class TType, class TAssert>
+    static inline bool operator !=(TRange<TType, TAssert> lhs,
+        TRange<TType, TAssert> rhs)
+    {
+        return !(TRange<TType, TAssert>(lhs.Release())
+            == TRange<TType, TAssert>(rhs.Release()));
     }
 
     template <class TType, class TAssert, class TCompare>
