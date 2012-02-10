@@ -84,7 +84,8 @@ int main()
         Check(r - r2, "1 3 9 ");
         Check(r2 - r, "4 6 ");
         Check((r - r2) | (r2 - r), "1 3 4 6 9 ");
-        Check((TRange<int>(1, 5) + TRange<int>(1, 7)) == (r & r2));
+        Check((TRange<int>(5) + TRange<int>(7)) == (r & r2));
+        Check(TRange<int>(5, 7), "7 7 7 7 7 ");
         Check((r - r2) != (r | r2));
         Check(Includes(r | r2, r));
         Check(!Includes((r - r2) | (r2 - r), r));

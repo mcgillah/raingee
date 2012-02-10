@@ -51,7 +51,7 @@ namespace NRaingee
         {
         }
 
-        inline explicit TRange(TSizeType_ size, const TType& value = TType())
+        inline TRange(TSizeType_ size, const TType& value)
             : Impl_(size ? new TSequenceRangeImpl<TType>(size, value) : 0)
         {
         }
@@ -60,6 +60,11 @@ namespace NRaingee
         inline TRange(TInputIterator first, TInputIterator last)
             : Impl_(first == last ?
                 0 : new TSequenceRangeImpl<TType>(first, last))
+        {
+        }
+
+        inline explicit TRange(const TType& value)
+            : Impl_(new TSingleValueRangeImpl<TType>(value))
         {
         }
 

@@ -156,6 +156,40 @@ namespace NRaingee
         }
     };
 
+    template <class TType>
+    class TSingleValueRangeImpl: public IRangeImpl<TType>
+    {
+        const TType Value_;
+        bool Empty_;
+
+    public:
+        inline explicit TSingleValueRangeImpl(const TType& value)
+            : Value_(value)
+            , Empty_(false)
+        {
+        }
+
+        inline bool IsEmpty() const
+        {
+            return Empty_;
+        }
+
+        inline void Pop()
+        {
+            Empty_ = true;
+        }
+
+        inline const TType& Front() const
+        {
+            return Value_;
+        }
+
+        inline IRangeImpl<TType>* Clone() const
+        {
+            return new TSingleValueRangeImpl(Value_);
+        }
+    };
+
     template <class TType, class TCounter>
     class TRepeatedRangeImpl: public IRangeImpl<TType>
     {
