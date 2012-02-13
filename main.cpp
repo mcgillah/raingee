@@ -111,6 +111,10 @@ int main()
         Check(r ^ r2, "1 3 4 6 9 ");
         Check((r | r2 | r3) ^ (r3 | r2 | r), "");
         Check((r ^ r) | (r2 ^ r2) | (r3 ^ r3), "");
+        Check(Size(r ^ r) == 0);
+        Check(Size(r) == 5);
+        Check(Size(r * 3) == 15);
+        Check(Size(r & r2) == 2);
     }
 }
 
