@@ -589,6 +589,86 @@ namespace NRaingee
             return new TUniqueRangeImpl(Range_->Clone(), Compare_);
         }
     };
+
+    template <class TType, class TCompare>
+    class TSymmetricDifferenceImpl: public IRangeImpl<TType>
+    {
+        IRangeImpl<TType>* const First_;
+        IRangeImpl<TType>* const Second_;
+        IRangeImpl<TType>* ActiveRange_;
+        TCompare Compare_;
+
+        IRangeImpl<TType>* Next()
+        {
+            while (!First_->IsEmpty())
+            {
+                if (Second_->IsEmpty())
+                {
+                    return First_;
+                }
+                else if (Compare_(First_->Front(), Second_->Front()))
+                {
+                    return First_;
+                }
+                else if (Compare_(Second_->Front(), First_->Front()))
+                {
+                    return Second_;
+                }
+                First_->Pop();
+                Second_->Pop();
+            }
+            return Second_;
+        }
+
+    public:
+        inline TSymmetricDifferenceImpl(IRangeImpl<TType>* first,
+            IRangeImpl<TType>* second, TCompare compare)
+            : First_(first)
+            , Second_(second)
+            , ActiveRange_(Next())
+            , Compare_(compare)
+        {
+        }
+
+        inline ~TSymmetricDifferenceImpl()
+        {
+            delete First_;
+            delete Second_;
+        }
+
+        inline bool IsEmpty() const
+        {
+            return First_->IsEmpty() && Second_->IsEmpty();
+        }
+
+        inline void Pop()
+        {
+            ActiveRange_->Pop();
+            ActiveRange_ = Next();
+        }
+
+        inline const TType& Front() const
+        {
+            return ActiveRange_->Front();
+        }
+
+        inline IRangeImpl<TType>* Clone() const
+        {
+            if (First_->IsEmpty())
+            {
+                return Second_->Clone();
+            }
+            else if (Second_->IsEmpty())
+            {
+                return First_->Clone();
+            }
+            else
+            {
+                return new TSymmetricDifferenceImpl(First_->Clone(),
+                    Second_->Clone(), Compare_);
+            }
+        }
+    };
 }
 
 #endif

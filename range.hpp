@@ -240,6 +240,27 @@ namespace NRaingee
         }
 
         template <class TCompare>
+        inline TRange& SymmetricDifference(TRange range, TCompare compare)
+        {
+            if (IsEmpty())
+            {
+                Swap(range);
+            }
+            else if (!range.IsEmpty())
+            {
+                Impl_ = new TSymmetricDifferenceImpl<TType, TCompare>(Impl_,
+                    range.Release(), compare);
+            }
+            return *this;
+        }
+
+        inline TRange& operator ^=(TRange range)
+        {
+            return SymmetricDifference(TRange(range.Release()),
+                std::less<TType>());
+        }
+
+        template <class TCompare>
         inline TRange& Unique(TCompare compare)
         {
             if (IsEmpty())
@@ -296,6 +317,14 @@ namespace NRaingee
         TRange<TType, TAssert> rhs)
     {
         lhs &= TRange<TType, TAssert>(rhs.Release());
+        return TRange<TType, TAssert>(lhs.Release());
+    }
+
+    template <class TType, class TAssert>
+    static inline TRange<TType, TAssert> operator ^(TRange<TType, TAssert> lhs,
+        TRange<TType, TAssert> rhs)
+    {
+        lhs ^= TRange<TType, TAssert>(rhs.Release());
         return TRange<TType, TAssert>(lhs.Release());
     }
 

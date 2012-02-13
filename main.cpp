@@ -102,8 +102,15 @@ int main()
         Check(r3 - r, "2 4 ");
         Check(r3 - r2 - r, "2 ");
         Check(Unique(TRange<int>(5, 7)), "7 ");
+        Check(Unique(r - r - r), "");
+        Check((r - r3) & (r3 - r) & TRange<int>(4), "");
+        Check(TRange<int>(4) & (r * 0) & TRange<int>(4), "");
         Check(Unique(TRange<int>(1) * 2 + TRange<int>(2)* 5 + TRange<int>(3)),
             "1 2 3 ");
+        Check((r | r3) ^ (r2 | r3), "6 ");
+        Check(r ^ r2, "1 3 4 6 9 ");
+        Check((r | r2 | r3) ^ (r3 | r2 | r), "");
+        Check((r ^ r) | (r2 ^ r2) | (r3 ^ r3), "");
     }
 }
 
