@@ -21,6 +21,7 @@
 #define __RANGE_HPP_2012_01_31__
 
 #include <functional>
+#include <limits>
 
 #include "emptyassert.hpp"
 #include "predicates.hpp"
@@ -33,15 +34,37 @@ namespace NRaingee
     {
         IRangeImpl<TType>* Impl_;
 
+        template <unsigned N>
+        struct TIntToType
+        {
+        };
+
+        template <class TInputIterator>
+        static inline IRangeImpl<TType>* MakeImpl(TInputIterator first,
+            TInputIterator last, TIntToType<0>)
+        {
+            if (first == last)
+            {
+                return 0;
+            }
+            else
+            {
+                return new TSequenceRangeImpl<TType>(first, last);
+            }
+        }
+
     public:
         typedef typename TSequenceRangeImpl<TType>::TSizeType_ TSizeType_;
 
-        inline TRange()
-            : Impl_()
+    private:
+        static inline IRangeImpl<TType>* MakeImpl(TSizeType_ size,
+            const TType& value, TIntToType<1>)
         {
+            return size ? new TSequenceRangeImpl<TType>(size, value) : 0;
         }
 
-        inline explicit TRange(IRangeImpl<TType>* impl)
+    public:
+        inline explicit TRange(IRangeImpl<TType>* impl = 0)
             : Impl_(impl)
         {
         }
@@ -52,14 +75,14 @@ namespace NRaingee
         }
 
         inline TRange(TSizeType_ size, const TType& value)
-            : Impl_(size ? new TSequenceRangeImpl<TType>(size, value) : 0)
+            : Impl_(MakeImpl(size, value, TIntToType<1>()))
         {
         }
 
         template <class TInputIterator>
         inline TRange(TInputIterator first, TInputIterator last)
-            : Impl_(first == last ?
-                0 : new TSequenceRangeImpl<TType>(first, last))
+            : Impl_(MakeImpl(first, last,
+                TIntToType<std::numeric_limits<TInputIterator>::is_integer>()))
         {
         }
 
@@ -215,6 +238,25 @@ namespace NRaingee
         {
             return Intersect(TRange(range.Release()), std::less<TType>());
         }
+
+        template <class TCompare>
+        inline TRange& Unique(TCompare compare)
+        {
+            if (IsEmpty())
+            {
+                *this = TRange();
+            }
+            else
+            {
+                Impl_ = new TUniqueRangeImpl<TType, TCompare>(Impl_, compare);
+            }
+            return *this;
+        }
+
+        inline TRange& Unique()
+        {
+            return Unique(std::equal_to<TType>());
+        }
     };
 
     template <class TType, class TAssert, class TCounter>
@@ -321,6 +363,21 @@ namespace NRaingee
         typedef TRange<TType, TAssert> TRangeType;
         return Includes(TRangeType(lhs.Release()), TRangeType(rhs.Release()),
             std::less<TType>());
+    }
+
+    template <class TType, class TAssert, class TCompare>
+    static inline TRange<TType, TAssert> Unique(TRange<TType, TAssert> range,
+        TCompare compare)
+    {
+        range.Unique(compare);
+        return TRange<TType, TAssert>(range.Release());
+    }
+
+    template <class TType, class TAssert>
+    static inline TRange<TType, TAssert> Unique(TRange<TType, TAssert> range)
+    {
+        return Unique(TRange<TType, TAssert>(range.Release()),
+            std::equal_to<TType>());
     }
 
     template <class TType, class TAssert>

@@ -70,6 +70,7 @@ int main()
     TRange<int> r3(c, c + sizeof(c) / sizeof(c[0]));
     for (int i = 0; i < Cycles; ++i)
     {
+        Check(TRange<int>(2, 2), "2 2 ");
         Check(r, "1 3 5 7 9 ");
         Check(r + r, "1 3 5 7 9 1 3 5 7 9 ");
         Check(r - r, "");
@@ -100,6 +101,9 @@ int main()
         Check(r - r3, "5 7 ");
         Check(r3 - r, "2 4 ");
         Check(r3 - r2 - r, "2 ");
+        Check(Unique(TRange<int>(5, 7)), "7 ");
+        Check(Unique(TRange<int>(1) * 2 + TRange<int>(2)* 5 + TRange<int>(3)),
+            "1 2 3 ");
     }
 }
 

@@ -546,6 +546,49 @@ namespace NRaingee
             }
         }
     };
+
+    template <class TType, class TCompare>
+    class TUniqueRangeImpl: public IRangeImpl<TType>
+    {
+        IRangeImpl<TType>* const Range_;
+        TCompare Compare_;
+
+    public:
+        inline TUniqueRangeImpl(IRangeImpl<TType>* range,
+            TCompare compare)
+            : Range_(range)
+            , Compare_(compare)
+        {
+        }
+
+        inline ~TUniqueRangeImpl()
+        {
+            delete Range_;
+        }
+
+        inline bool IsEmpty() const
+        {
+            return Range_->IsEmpty();
+        }
+
+        inline void Pop()
+        {
+            TType val = Range_->Front();
+            do {
+                Range_->Pop();
+            } while (!Range_->IsEmpty() && Compare_(val, Range_->Front()));
+        }
+
+        inline const TType& Front() const
+        {
+            return Range_->Front();
+        }
+
+        inline IRangeImpl<TType>* Clone() const
+        {
+            return new TUniqueRangeImpl(Range_->Clone(), Compare_);
+        }
+    };
 }
 
 #endif
