@@ -177,8 +177,7 @@ namespace NRaingee
             }
             else if (!range.IsEmpty())
             {
-                Impl_ = new TConcatenatedRangesImpl<TType>(Impl_,
-                    range.Release());
+                Impl_ = new TConcatenatedRangesImpl<TType>(Impl_, range);
             }
             return *this;
         }
@@ -428,6 +427,40 @@ namespace NRaingee
         TRange<TType, TAssert>& rhs)
     {
         lhs.Swap(rhs);
+    }
+
+    // Complex ranges c'tors
+    template <class TType> template <class TAssert>
+    TConcatenatedRangesImpl<TType>::TConcatenatedRangesImpl(
+        IRangeImpl<TType>* first, TRange<TType, TAssert>& second)
+        : First_(first)
+        , Second_(second.Release())
+        , ActiveRange_(First_)
+    {
+    }
+
+    template <class TType> template <class TAssert>
+    TConcatenatedRangesImpl<TType>::TConcatenatedRangesImpl(
+        TRange<TType, TAssert>& first, TRange<TType, TAssert>& second)
+        : First_(first.Release())
+        , Second_(second.Release())
+        , ActiveRange_(First_)
+    {
+    }
+
+    template <class TType>
+    IRangeImpl<TType>* TConcatenatedRangesImpl<TType>::Clone() const
+    {
+        if (ActiveRange_ == First_)
+        {
+            TRange<TType, TEmptyAssert> first(First_->Clone());
+            TRange<TType, TEmptyAssert> second(Second_->Clone());
+            return new TConcatenatedRangesImpl(first, second);
+        }
+        else
+        {
+            return Second_->Clone();
+        }
     }
 }
 

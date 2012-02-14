@@ -24,6 +24,9 @@
 
 namespace NRaingee
 {
+    template <class TType, class TAssert>
+    class TRange;
+
     template <class TType>
     class IRangeImpl
     {
@@ -271,13 +274,13 @@ namespace NRaingee
         IRangeImpl<TType>* ActiveRange_;
 
     public:
-        inline TConcatenatedRangesImpl(IRangeImpl<TType>* first,
-            IRangeImpl<TType>* second)
-            : First_(first)
-            , Second_(second)
-            , ActiveRange_(First_)
-        {
-        }
+        template <class TAssert>
+        TConcatenatedRangesImpl(IRangeImpl<TType>* first,
+            TRange<TType, TAssert>& second);
+
+        template <class TAssert>
+        TConcatenatedRangesImpl(TRange<TType, TAssert>& first,
+            TRange<TType, TAssert>& second);
 
         inline ~TConcatenatedRangesImpl()
         {
@@ -304,18 +307,7 @@ namespace NRaingee
             return ActiveRange_->Front();
         }
 
-        inline IRangeImpl<TType>* Clone() const
-        {
-            if (ActiveRange_ == First_)
-            {
-                return new TConcatenatedRangesImpl(First_->Clone(),
-                    Second_->Clone());
-            }
-            else
-            {
-                return Second_->Clone();
-            }
-        }
+        IRangeImpl<TType>* Clone() const;
     };
 
     template <class TType, class TCompare>
