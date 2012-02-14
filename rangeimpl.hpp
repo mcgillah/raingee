@@ -494,14 +494,13 @@ namespace NRaingee
         }
 
     public:
-        inline TComplementedRangesImpl(IRangeImpl<TType>* first,
-            IRangeImpl<TType>* second, TCompare compare)
-            : First_(first)
-            , Second_(second)
-            , Compare_(compare)
-        {
-            Next();
-        }
+        template <class TAssert>
+        TComplementedRangesImpl(IRangeImpl<TType>* first,
+            TRange<TType, TAssert>& second, TCompare compare);
+
+        template <class TAssert>
+        TComplementedRangesImpl(TRange<TType, TAssert>& first,
+            TRange<TType, TAssert>& second, TCompare compare);
 
         inline ~TComplementedRangesImpl()
         {
@@ -525,18 +524,7 @@ namespace NRaingee
             return First_->Front();
         }
 
-        inline IRangeImpl<TType>* Clone() const
-        {
-            if (Second_->IsEmpty())
-            {
-                return First_->Clone();
-            }
-            else
-            {
-                return new TComplementedRangesImpl(First_->Clone(),
-                    Second_->Clone(), Compare_);
-            }
-        }
+        IRangeImpl<TType>* Clone() const;
     };
 
     template <class TType, class TCompare>

@@ -188,7 +188,7 @@ namespace NRaingee
             if (!IsEmpty() && !range.IsEmpty())
             {
                 Impl_ = new TComplementedRangesImpl<TType, TCompare>(Impl_,
-                    range.Release(), compare);
+                    range, compare);
             }
             return *this;
         }
@@ -460,6 +460,45 @@ namespace NRaingee
         else
         {
             return Second_->Clone();
+        }
+    }
+
+    template <class TType, class TCompare> template <class TAssert>
+    TComplementedRangesImpl<TType, TCompare>::TComplementedRangesImpl(
+        IRangeImpl<TType>* first,
+        TRange<TType, TAssert>& second,
+        TCompare compare)
+        : First_(first)
+        , Second_(second.Release())
+        , Compare_(compare)
+    {
+        Next();
+    }
+
+    template <class TType, class TCompare> template <class TAssert>
+    TComplementedRangesImpl<TType, TCompare>::TComplementedRangesImpl(
+        TRange<TType, TAssert>& first,
+        TRange<TType, TAssert>& second,
+        TCompare compare)
+        : First_(first.Release())
+        , Second_(second.Release())
+        , Compare_(compare)
+    {
+        Next();
+    }
+
+    template <class TType, class TCompare>
+    IRangeImpl<TType>* TComplementedRangesImpl<TType, TCompare>::Clone() const
+    {
+        if (Second_->IsEmpty())
+        {
+            return First_->Clone();
+        }
+        else
+        {
+            TRange<TType, TEmptyAssert> first(First_->Clone());
+            TRange<TType, TEmptyAssert> second(Second_->Clone());
+            return new TComplementedRangesImpl(first, second, Compare_);
         }
     }
 }
