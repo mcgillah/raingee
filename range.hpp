@@ -430,6 +430,25 @@ namespace NRaingee
     }
 
     // Complex ranges c'tors
+    template <class TType, class TCounter> template <class TAssert>
+    TRepeatedRangeImpl<TType, TCounter>::TRepeatedRangeImpl(
+        TRange<TType, TAssert>& range,
+        TRange<TType, TAssert>& current,
+        TCounter counter)
+        : Range_(range.Release())
+        , CurrentRange_(current.Release())
+        , Counter_(counter)
+    {
+    }
+
+    template <class TType, class TCounter>
+    IRangeImpl<TType>* TRepeatedRangeImpl<TType, TCounter>::Clone() const
+    {
+        TRange<TType, TEmptyAssert> range(Range_->Clone());
+        TRange<TType, TEmptyAssert> current(CurrentRange_->Clone());
+        return new TRepeatedRangeImpl(range, current, Counter_);
+    }
+
     template <class TType> template <class TAssert>
     TConcatenatedRangesImpl<TType>::TConcatenatedRangesImpl(
         IRangeImpl<TType>* first, TRange<TType, TAssert>& second)
@@ -624,6 +643,21 @@ namespace NRaingee
             TRange<TType, TEmptyAssert> second(Second_->Clone());
             return new TSymmetricDifferenceImpl(first, second, Compare_);
         }
+    }
+
+    template <class TType, class TCompare> template <class TAssert>
+    TUniqueRangeImpl<TType, TCompare>::TUniqueRangeImpl(
+        TRange<TType, TAssert>& range,TCompare compare)
+        : Range_(range.Release())
+        , Compare_(compare)
+    {
+    }
+
+    template <class TType, class TCompare>
+    IRangeImpl<TType>* TUniqueRangeImpl<TType, TCompare>::Clone() const
+    {
+        TRange<TType, TEmptyAssert> range(Range_->Clone());
+        return new TUniqueRangeImpl(range, Compare_);
     }
 }
 

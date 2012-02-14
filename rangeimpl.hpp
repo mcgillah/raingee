@@ -200,6 +200,10 @@ namespace NRaingee
         IRangeImpl<TType>* CurrentRange_;
         TCounter Counter_;
 
+        template <class TAssert>
+        TRepeatedRangeImpl(TRange<TType, TAssert>& range,
+            TRange<TType, TAssert>& current, TCounter counter);
+
     public:
         inline TRepeatedRangeImpl(const IRangeImpl<TType>* range,
             TCounter counter)
@@ -208,15 +212,6 @@ namespace NRaingee
             , Counter_(counter)
         {
             --Counter_;
-        }
-
-        inline TRepeatedRangeImpl(const IRangeImpl<TType>* range,
-            IRangeImpl<TType>* current,
-            TCounter counter)
-            : Range_(range)
-            , CurrentRange_(current)
-            , Counter_(counter)
-        {
         }
 
         inline ~TRepeatedRangeImpl()
@@ -246,11 +241,7 @@ namespace NRaingee
             return CurrentRange_->Front();
         }
 
-        inline IRangeImpl<TType>* Clone() const
-        {
-            return new TRepeatedRangeImpl(Range_->Clone(),
-                CurrentRange_->Clone(), Counter_);
-        }
+        IRangeImpl<TType>* Clone() const;
     };
 
     struct TInfiniteCounter
@@ -273,13 +264,13 @@ namespace NRaingee
         IRangeImpl<TType>* const Second_;
         IRangeImpl<TType>* ActiveRange_;
 
+        template <class TAssert>
+        TConcatenatedRangesImpl(TRange<TType, TAssert>& first,
+            TRange<TType, TAssert>& second);
+
     public:
         template <class TAssert>
         TConcatenatedRangesImpl(IRangeImpl<TType>* first,
-            TRange<TType, TAssert>& second);
-
-        template <class TAssert>
-        TConcatenatedRangesImpl(TRange<TType, TAssert>& first,
             TRange<TType, TAssert>& second);
 
         inline ~TConcatenatedRangesImpl()
@@ -319,13 +310,13 @@ namespace NRaingee
         TCompare Compare_;
         bool PopBoth_;
 
+        template <class TAssert>
+        TUnitedRangesImpl(TRange<TType, TAssert>& first,
+            TRange<TType, TAssert>& second, TCompare compare);
+
     public:
         template <class TAssert>
         TUnitedRangesImpl(IRangeImpl<TType>* first,
-            TRange<TType, TAssert>& second, TCompare compare);
-
-        template <class TAssert>
-        TUnitedRangesImpl(TRange<TType, TAssert>& first,
             TRange<TType, TAssert>& second, TCompare compare);
 
         inline ~TUnitedRangesImpl()
@@ -408,13 +399,13 @@ namespace NRaingee
             }
         }
 
+        template <class TAssert>
+        TIntersectedRangesImpl(TRange<TType, TAssert>& first,
+            TRange<TType, TAssert>& second, TCompare compare);
+
     public:
         template <class TAssert>
         TIntersectedRangesImpl(IRangeImpl<TType>* first,
-            TRange<TType, TAssert>& second, TCompare compare);
-
-        template <class TAssert>
-        TIntersectedRangesImpl(TRange<TType, TAssert>& first,
             TRange<TType, TAssert>& second, TCompare compare);
 
         inline ~TIntersectedRangesImpl()
@@ -469,13 +460,13 @@ namespace NRaingee
             }
         }
 
+        template <class TAssert>
+        TComplementedRangesImpl(TRange<TType, TAssert>& first,
+            TRange<TType, TAssert>& second, TCompare compare);
+
     public:
         template <class TAssert>
         TComplementedRangesImpl(IRangeImpl<TType>* first,
-            TRange<TType, TAssert>& second, TCompare compare);
-
-        template <class TAssert>
-        TComplementedRangesImpl(TRange<TType, TAssert>& first,
             TRange<TType, TAssert>& second, TCompare compare);
 
         inline ~TComplementedRangesImpl()
@@ -501,49 +492,6 @@ namespace NRaingee
         }
 
         IRangeImpl<TType>* Clone() const;
-    };
-
-    template <class TType, class TCompare>
-    class TUniqueRangeImpl: public IRangeImpl<TType>
-    {
-        IRangeImpl<TType>* const Range_;
-        TCompare Compare_;
-
-    public:
-        inline TUniqueRangeImpl(IRangeImpl<TType>* range,
-            TCompare compare)
-            : Range_(range)
-            , Compare_(compare)
-        {
-        }
-
-        inline ~TUniqueRangeImpl()
-        {
-            delete Range_;
-        }
-
-        inline bool IsEmpty() const
-        {
-            return Range_->IsEmpty();
-        }
-
-        inline void Pop()
-        {
-            TType val = Range_->Front();
-            do {
-                Range_->Pop();
-            } while (!Range_->IsEmpty() && Compare_(val, Range_->Front()));
-        }
-
-        inline const TType& Front() const
-        {
-            return Range_->Front();
-        }
-
-        inline IRangeImpl<TType>* Clone() const
-        {
-            return new TUniqueRangeImpl(Range_->Clone(), Compare_);
-        }
     };
 
     template <class TType, class TCompare>
@@ -576,13 +524,13 @@ namespace NRaingee
             return Second_;
         }
 
+        template <class TAssert>
+        TSymmetricDifferenceImpl(TRange<TType, TAssert>& first,
+            TRange<TType, TAssert>& second, TCompare compare);
+
     public:
         template <class TAssert>
         TSymmetricDifferenceImpl(IRangeImpl<TType>* first,
-            TRange<TType, TAssert>& second, TCompare compare);
-
-        template <class TAssert>
-        TSymmetricDifferenceImpl(TRange<TType, TAssert>& first,
             TRange<TType, TAssert>& second, TCompare compare);
 
         inline ~TSymmetricDifferenceImpl()
@@ -605,6 +553,50 @@ namespace NRaingee
         inline const TType& Front() const
         {
             return ActiveRange_->Front();
+        }
+
+        IRangeImpl<TType>* Clone() const;
+    };
+
+    template <class TType, class TCompare>
+    class TUniqueRangeImpl: public IRangeImpl<TType>
+    {
+        IRangeImpl<TType>* const Range_;
+        TCompare Compare_;
+
+        template <class TAssert>
+        TUniqueRangeImpl(TRange<TType, TAssert>& range,
+            TCompare compare);
+
+    public:
+        inline TUniqueRangeImpl(IRangeImpl<TType>* range,
+            TCompare compare)
+            : Range_(range)
+            , Compare_(compare)
+        {
+        }
+
+        inline ~TUniqueRangeImpl()
+        {
+            delete Range_;
+        }
+
+        inline bool IsEmpty() const
+        {
+            return Range_->IsEmpty();
+        }
+
+        inline void Pop()
+        {
+            TType val = Range_->Front();
+            do {
+                Range_->Pop();
+            } while (!Range_->IsEmpty() && Compare_(val, Range_->Front()));
+        }
+
+        inline const TType& Front() const
+        {
+            return Range_->Front();
         }
 
         IRangeImpl<TType>* Clone() const;
