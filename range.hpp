@@ -207,8 +207,8 @@ namespace NRaingee
             }
             else if (!range.IsEmpty())
             {
-                Impl_ = new TUnitedRangesImpl<TType, TCompare>(Impl_,
-                    range.Release(), compare);
+                Impl_ = new TUnitedRangesImpl<TType, TCompare>(Impl_, range,
+                    compare);
             }
             return *this;
         }
@@ -499,6 +499,55 @@ namespace NRaingee
             TRange<TType, TEmptyAssert> first(First_->Clone());
             TRange<TType, TEmptyAssert> second(Second_->Clone());
             return new TComplementedRangesImpl(first, second, Compare_);
+        }
+    }
+
+    template <class TType, class TCompare> template <class TAssert>
+    TUnitedRangesImpl<TType, TCompare>::TUnitedRangesImpl(
+        IRangeImpl<TType>* first,
+        TRange<TType, TAssert>& second,
+        TCompare compare)
+        : First_(first)
+        , Second_(second.Release())
+        , ActiveRange_(Compare_(First_->Front(), Second_->Front()) ?
+            First_ : Second_)
+        , Compare_(compare)
+        , PopBoth_(ActiveRange_ == Second_
+            && !Compare_(Second_->Front(), First_->Front()))
+    {
+    }
+
+    template <class TType, class TCompare> template <class TAssert>
+    TUnitedRangesImpl<TType, TCompare>::TUnitedRangesImpl(
+        TRange<TType, TAssert>& first,
+        TRange<TType, TAssert>& second,
+        TCompare compare)
+        : First_(first.Release())
+        , Second_(second.Release())
+        , ActiveRange_(Compare_(First_->Front(), Second_->Front()) ?
+            First_ : Second_)
+        , Compare_(compare)
+        , PopBoth_(ActiveRange_ == Second_
+            && !Compare_(Second_->Front(), First_->Front()))
+    {
+    }
+
+    template <class TType, class TCompare>
+    IRangeImpl<TType>* TUnitedRangesImpl<TType, TCompare>::Clone() const
+    {
+        if (First_->IsEmpty())
+        {
+            return Second_->Clone();
+        }
+        else if (Second_->IsEmpty())
+        {
+            return First_->Clone();
+        }
+        else
+        {
+            TRange<TType, TEmptyAssert> first(First_->Clone());
+            TRange<TType, TEmptyAssert> second(Second_->Clone());
+            return new TUnitedRangesImpl(first, second, Compare_);
         }
     }
 }

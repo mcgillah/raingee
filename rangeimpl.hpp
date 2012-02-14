@@ -320,17 +320,13 @@ namespace NRaingee
         bool PopBoth_;
 
     public:
-        inline TUnitedRangesImpl(IRangeImpl<TType>* first,
-            IRangeImpl<TType>* second, TCompare compare)
-            : First_(first)
-            , Second_(second)
-            , ActiveRange_(Compare_(First_->Front(), Second_->Front()) ?
-                First_ : Second_)
-            , Compare_(compare)
-            , PopBoth_(ActiveRange_ == Second_
-                && !Compare_(Second_->Front(), First_->Front()))
-        {
-        }
+        template <class TAssert>
+        TUnitedRangesImpl(IRangeImpl<TType>* first,
+            TRange<TType, TAssert>& second, TCompare compare);
+
+        template <class TAssert>
+        TUnitedRangesImpl(TRange<TType, TAssert>& first,
+            TRange<TType, TAssert>& second, TCompare compare);
 
         inline ~TUnitedRangesImpl()
         {
@@ -383,22 +379,7 @@ namespace NRaingee
             return ActiveRange_->Front();
         }
 
-        inline IRangeImpl<TType>* Clone() const
-        {
-            if (First_->IsEmpty())
-            {
-                return Second_->Clone();
-            }
-            else if (Second_->IsEmpty())
-            {
-                return First_->Clone();
-            }
-            else
-            {
-                return new TUnitedRangesImpl(First_->Clone(),
-                    Second_->Clone(), Compare_);
-            }
-        }
+        IRangeImpl<TType>* Clone() const;
     };
 
     template <class TType, class TCompare>
