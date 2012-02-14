@@ -409,14 +409,13 @@ namespace NRaingee
         }
 
     public:
-        inline TIntersectedRangesImpl(IRangeImpl<TType>* first,
-            IRangeImpl<TType>* second, TCompare compare)
-            : First_(first)
-            , Second_(second)
-            , Compare_(compare)
-        {
-            Next();
-        }
+        template <class TAssert>
+        TIntersectedRangesImpl(IRangeImpl<TType>* first,
+            TRange<TType, TAssert>& second, TCompare compare);
+
+        template <class TAssert>
+        TIntersectedRangesImpl(TRange<TType, TAssert>& first,
+            TRange<TType, TAssert>& second, TCompare compare);
 
         inline ~TIntersectedRangesImpl()
         {
@@ -441,11 +440,7 @@ namespace NRaingee
             return First_->Front();
         }
 
-        inline IRangeImpl<TType>* Clone() const
-        {
-            return new TIntersectedRangesImpl(First_->Clone(),
-                Second_->Clone(), Compare_);
-        }
+        IRangeImpl<TType>* Clone() const;
     };
 
     template <class TType, class TCompare>

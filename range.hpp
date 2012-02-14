@@ -228,7 +228,7 @@ namespace NRaingee
             else
             {
                 Impl_ = new TIntersectedRangesImpl<TType, TCompare>(Impl_,
-                    range.Release(), compare);
+                    range, compare);
             }
             return *this;
         }
@@ -549,6 +549,38 @@ namespace NRaingee
             TRange<TType, TEmptyAssert> second(Second_->Clone());
             return new TUnitedRangesImpl(first, second, Compare_);
         }
+    }
+
+    template <class TType, class TCompare> template <class TAssert>
+    TIntersectedRangesImpl<TType, TCompare>::TIntersectedRangesImpl(
+        IRangeImpl<TType>* first,
+        TRange<TType, TAssert>& second,
+        TCompare compare)
+        : First_(first)
+        , Second_(second.Release())
+        , Compare_(compare)
+    {
+        Next();
+    }
+
+    template <class TType, class TCompare> template <class TAssert>
+    TIntersectedRangesImpl<TType, TCompare>::TIntersectedRangesImpl(
+        TRange<TType, TAssert>& first,
+        TRange<TType, TAssert>& second,
+        TCompare compare)
+        : First_(first.Release())
+        , Second_(second.Release())
+        , Compare_(compare)
+    {
+        Next();
+    }
+
+    template <class TType, class TCompare>
+    IRangeImpl<TType>* TIntersectedRangesImpl<TType, TCompare>::Clone() const
+    {
+        TRange<TType, TEmptyAssert> first(First_->Clone());
+        TRange<TType, TEmptyAssert> second(Second_->Clone());
+        return new TIntersectedRangesImpl(first, second, Compare_);
     }
 }
 
