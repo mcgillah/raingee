@@ -577,14 +577,13 @@ namespace NRaingee
         }
 
     public:
-        inline TSymmetricDifferenceImpl(IRangeImpl<TType>* first,
-            IRangeImpl<TType>* second, TCompare compare)
-            : First_(first)
-            , Second_(second)
-            , ActiveRange_(Next())
-            , Compare_(compare)
-        {
-        }
+        template <class TAssert>
+        TSymmetricDifferenceImpl(IRangeImpl<TType>* first,
+            TRange<TType, TAssert>& second, TCompare compare);
+
+        template <class TAssert>
+        TSymmetricDifferenceImpl(TRange<TType, TAssert>& first,
+            TRange<TType, TAssert>& second, TCompare compare);
 
         inline ~TSymmetricDifferenceImpl()
         {
@@ -608,22 +607,7 @@ namespace NRaingee
             return ActiveRange_->Front();
         }
 
-        inline IRangeImpl<TType>* Clone() const
-        {
-            if (First_->IsEmpty())
-            {
-                return Second_->Clone();
-            }
-            else if (Second_->IsEmpty())
-            {
-                return First_->Clone();
-            }
-            else
-            {
-                return new TSymmetricDifferenceImpl(First_->Clone(),
-                    Second_->Clone(), Compare_);
-            }
-        }
+        IRangeImpl<TType>* Clone() const;
     };
 }
 

@@ -248,7 +248,7 @@ namespace NRaingee
             else if (!range.IsEmpty())
             {
                 Impl_ = new TSymmetricDifferenceImpl<TType, TCompare>(Impl_,
-                    range.Release(), compare);
+                    range, compare);
             }
             return *this;
         }
@@ -581,6 +581,49 @@ namespace NRaingee
         TRange<TType, TEmptyAssert> first(First_->Clone());
         TRange<TType, TEmptyAssert> second(Second_->Clone());
         return new TIntersectedRangesImpl(first, second, Compare_);
+    }
+
+    template <class TType, class TCompare> template <class TAssert>
+    TSymmetricDifferenceImpl<TType, TCompare>::TSymmetricDifferenceImpl(
+        IRangeImpl<TType>* first,
+        TRange<TType, TAssert>& second,
+        TCompare compare)
+        : First_(first)
+        , Second_(second.Release())
+        , ActiveRange_(Next())
+        , Compare_(compare)
+    {
+    }
+
+    template <class TType, class TCompare> template <class TAssert>
+    TSymmetricDifferenceImpl<TType, TCompare>::TSymmetricDifferenceImpl(
+        TRange<TType, TAssert>& first,
+        TRange<TType, TAssert>& second,
+        TCompare compare)
+        : First_(first.Release())
+        , Second_(second.Release())
+        , ActiveRange_(Next())
+        , Compare_(compare)
+    {
+    }
+
+    template <class TType, class TCompare>
+    IRangeImpl<TType>* TSymmetricDifferenceImpl<TType, TCompare>::Clone() const
+    {
+        if (First_->IsEmpty())
+        {
+            return Second_->Clone();
+        }
+        else if (Second_->IsEmpty())
+        {
+            return First_->Clone();
+        }
+        else
+        {
+            TRange<TType, TEmptyAssert> first(First_->Clone());
+            TRange<TType, TEmptyAssert> second(Second_->Clone());
+            return new TSymmetricDifferenceImpl(first, second, Compare_);
+        }
     }
 }
 
