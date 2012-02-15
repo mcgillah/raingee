@@ -565,12 +565,10 @@ namespace NRaingee
         TCompare Compare_;
 
         template <class TAssert>
-        TUniqueRangeImpl(TRange<TType, TAssert>& range,
-            TCompare compare);
+        TUniqueRangeImpl(TRange<TType, TAssert>& range, TCompare compare);
 
     public:
-        inline TUniqueRangeImpl(IRangeImpl<TType>* range,
-            TCompare compare)
+        inline TUniqueRangeImpl(IRangeImpl<TType>* range, TCompare compare)
             : Range_(range)
             , Compare_(compare)
         {
@@ -592,6 +590,55 @@ namespace NRaingee
             do {
                 Range_->Pop();
             } while (!Range_->IsEmpty() && Compare_(val, Range_->Front()));
+        }
+
+        inline const TType& Front() const
+        {
+            return Range_->Front();
+        }
+
+        IRangeImpl<TType>* Clone() const;
+    };
+
+    template <class TType, class TPredicate>
+    class TRemoveImpl: public IRangeImpl<TType>
+    {
+        IRangeImpl<TType>* const Range_;
+        TPredicate Predicate_;
+
+        void Next()
+        {
+            while (!Range_->IsEmpty() && Predicate_(Range_->Front()))
+            {
+                Range_->Pop();
+            }
+        }
+
+        template <class TAssert>
+        TRemoveImpl(TRange<TType, TAssert>& range, TPredicate predicate);
+
+    public:
+        inline TRemoveImpl(IRangeImpl<TType>* range, TPredicate predicate)
+            : Range_(range)
+            , Predicate_(predicate)
+        {
+            Next();
+        }
+
+        inline ~TRemoveImpl()
+        {
+            delete Range_;
+        }
+
+        inline bool IsEmpty() const
+        {
+            return Range_->IsEmpty();
+        }
+
+        inline void Pop()
+        {
+            Range_->Pop();
+            Next();
         }
 
         inline const TType& Front() const

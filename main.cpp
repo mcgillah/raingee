@@ -118,6 +118,8 @@ int main()
         Check(Size(r) == 5);
         Check(Size(r * 3) == 15);
         Check(Size(r & r2) == 2);
+        Check(Remove(r, std::bind1st(std::equal_to<int>(), 7)), "1 3 5 9 ");
+        Check(Remove(r + r, std::bind2nd(std::modulus<int>(), 3)), "3 9 3 9 ");
     }
 }
 

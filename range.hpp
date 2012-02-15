@@ -279,6 +279,15 @@ namespace NRaingee
         {
             Unique(std::equal_to<TType>());
         }
+
+        template <class TPredicate>
+        inline void Remove(TPredicate predicate)
+        {
+            if (!IsEmpty())
+            {
+                Impl_ = new TRemoveImpl<TType, TPredicate>(Impl_, predicate);
+            }
+        }
     };
 
     template <class TType, class TAssert, class TCounter>
@@ -408,6 +417,14 @@ namespace NRaingee
     {
         return Unique(TRange<TType, TAssert>(range.Release()),
             std::equal_to<TType>());
+    }
+
+    template <class TType, class TAssert, class TPredicate>
+    static inline TRange<TType, TAssert> Remove(TRange<TType, TAssert> range,
+        TPredicate predicate)
+    {
+        range.Remove(predicate);
+        return TRange<TType, TAssert>(range.Release());
     }
 
     template <class TType, class TAssert>
@@ -649,7 +666,7 @@ namespace NRaingee
 
     template <class TType, class TCompare> template <class TAssert>
     TUniqueRangeImpl<TType, TCompare>::TUniqueRangeImpl(
-        TRange<TType, TAssert>& range,TCompare compare)
+        TRange<TType, TAssert>& range, TCompare compare)
         : Range_(range.Release())
         , Compare_(compare)
     {
@@ -660,6 +677,22 @@ namespace NRaingee
     {
         TRange<TType, TEmptyAssert> range(Range_->Clone());
         return new TUniqueRangeImpl(range, Compare_);
+    }
+
+    template <class TType, class TPredicate> template <class TAssert>
+    TRemoveImpl<TType, TPredicate>::TRemoveImpl(
+        TRange<TType, TAssert>& range, TPredicate predicate)
+        : Range_(range.Release())
+        , Predicate_(predicate)
+    {
+        Next();
+    }
+
+    template <class TType, class TPredicate>
+    IRangeImpl<TType>* TRemoveImpl<TType, TPredicate>::Clone() const
+    {
+        TRange<TType, TEmptyAssert> range(Range_->Clone());
+        return new TRemoveImpl(range, Predicate_);
     }
 }
 
