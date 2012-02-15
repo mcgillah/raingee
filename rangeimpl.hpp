@@ -228,7 +228,7 @@ namespace NRaingee
         inline void Pop()
         {
             CurrentRange_->Pop();
-            if (CurrentRange_->IsEmpty() && Counter_)
+            if (CurrentRange_->IsEmpty() && !!Counter_)
             {
                 delete CurrentRange_;
                 CurrentRange_ = Range_->Clone();

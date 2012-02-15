@@ -34,6 +34,12 @@ namespace NRaingee
     {
         IRangeImpl<TType>* Impl_;
 
+        inline void Clear()
+        {
+            delete Impl_;
+            Impl_ = 0;
+        }
+
         template <unsigned N>
         struct TIntToType
         {
@@ -141,8 +147,7 @@ namespace NRaingee
             {
                 if (Impl_->IsEmpty())
                 {
-                    delete Impl_;
-                    Impl_ = 0;
+                    Clear();
                 }
                 else
                 {
@@ -156,14 +161,14 @@ namespace NRaingee
         {
             if (!IsEmpty())
             {
-                if (counter)
+                if (!counter)
                 {
-                    Impl_ = new TRepeatedRangeImpl<TType, TCounter>(Impl_,
-                        counter);
+                    Clear();
                 }
                 else
                 {
-                    *this = TRange();
+                    Impl_ = new TRepeatedRangeImpl<TType, TCounter>(Impl_,
+                        counter);
                 }
             }
             return *this;
@@ -183,23 +188,23 @@ namespace NRaingee
         }
 
         template <class TCompare>
-        inline TRange& Complement(TRange range, TCompare compare)
+        inline void Complement(TRange range, TCompare compare)
         {
             if (!IsEmpty() && !range.IsEmpty())
             {
                 Impl_ = new TComplementedRangesImpl<TType, TCompare>(Impl_,
                     range, compare);
             }
-            return *this;
         }
 
         inline TRange& operator -=(TRange range)
         {
-            return Complement(TRange(range.Release()), std::less<TType>());
+            Complement(TRange(range.Release()), std::less<TType>());
+            return *this;
         }
 
         template <class TCompare>
-        inline TRange& Unite(TRange range, TCompare compare)
+        inline void Unite(TRange range, TCompare compare)
         {
             if (IsEmpty())
             {
@@ -210,36 +215,39 @@ namespace NRaingee
                 Impl_ = new TUnitedRangesImpl<TType, TCompare>(Impl_, range,
                     compare);
             }
-            return *this;
         }
 
         inline TRange& operator |=(TRange range)
         {
-            return Unite(TRange(range.Release()), std::less<TType>());
+            Unite(TRange(range.Release()), std::less<TType>());
+            return *this;
         }
 
         template <class TCompare>
-        inline TRange& Intersect(TRange range, TCompare compare)
+        inline void Intersect(TRange range, TCompare compare)
         {
-            if (IsEmpty() || range.IsEmpty())
+            if (!IsEmpty())
             {
-                *this = TRange();
+                if(range.IsEmpty())
+                {
+                    Clear();
+                }
+                else
+                {
+                    Impl_ = new TIntersectedRangesImpl<TType, TCompare>(Impl_,
+                        range, compare);
+                }
             }
-            else
-            {
-                Impl_ = new TIntersectedRangesImpl<TType, TCompare>(Impl_,
-                    range, compare);
-            }
-            return *this;
         }
 
         inline TRange& operator &=(TRange range)
         {
-            return Intersect(TRange(range.Release()), std::less<TType>());
+            Intersect(TRange(range.Release()), std::less<TType>());
+            return *this;
         }
 
         template <class TCompare>
-        inline TRange& SymmetricDifference(TRange range, TCompare compare)
+        inline void SymmetricDifference(TRange range, TCompare compare)
         {
             if (IsEmpty())
             {
@@ -250,32 +258,26 @@ namespace NRaingee
                 Impl_ = new TSymmetricDifferenceImpl<TType, TCompare>(Impl_,
                     range, compare);
             }
-            return *this;
         }
 
         inline TRange& operator ^=(TRange range)
         {
-            return SymmetricDifference(TRange(range.Release()),
-                std::less<TType>());
-        }
-
-        template <class TCompare>
-        inline TRange& Unique(TCompare compare)
-        {
-            if (IsEmpty())
-            {
-                *this = TRange();
-            }
-            else
-            {
-                Impl_ = new TUniqueRangeImpl<TType, TCompare>(Impl_, compare);
-            }
+            SymmetricDifference(TRange(range.Release()), std::less<TType>());
             return *this;
         }
 
-        inline TRange& Unique()
+        template <class TCompare>
+        inline void Unique(TCompare compare)
         {
-            return Unique(std::equal_to<TType>());
+            if (!IsEmpty())
+            {
+                Impl_ = new TUniqueRangeImpl<TType, TCompare>(Impl_, compare);
+            }
+        }
+
+        inline void Unique()
+        {
+            Unique(std::equal_to<TType>());
         }
     };
 
