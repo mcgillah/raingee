@@ -44,7 +44,7 @@ namespace NRaingee
 
         virtual bool IsEmpty() const = 0;
         virtual void Pop() = 0 ;
-        virtual const TType& Front() const = 0;
+        virtual TType Front() const = 0;
         virtual IRangeImpl* Clone() const = 0;
     };
 
@@ -148,7 +148,7 @@ namespace NRaingee
             ++Begin_;
         }
 
-        inline const TType& Front() const
+        inline TType Front() const
         {
             return *Begin_;
         }
@@ -182,7 +182,7 @@ namespace NRaingee
             Empty_ = true;
         }
 
-        inline const TType& Front() const
+        inline TType Front() const
         {
             return Value_;
         }
@@ -236,7 +236,7 @@ namespace NRaingee
             }
         }
 
-        inline const TType& Front() const
+        inline TType Front() const
         {
             return CurrentRange_->Front();
         }
@@ -293,7 +293,7 @@ namespace NRaingee
             }
         }
 
-        inline const TType& Front() const
+        inline TType Front() const
         {
             return ActiveRange_->Front();
         }
@@ -365,7 +365,7 @@ namespace NRaingee
             }
         }
 
-        inline const TType& Front() const
+        inline TType Front() const
         {
             return ActiveRange_->Front();
         }
@@ -426,7 +426,7 @@ namespace NRaingee
             Next();
         }
 
-        inline const TType& Front() const
+        inline TType Front() const
         {
             return First_->Front();
         }
@@ -486,7 +486,7 @@ namespace NRaingee
             Next();
         }
 
-        inline const TType& Front() const
+        inline TType Front() const
         {
             return First_->Front();
         }
@@ -550,7 +550,7 @@ namespace NRaingee
             ActiveRange_ = Next();
         }
 
-        inline const TType& Front() const
+        inline TType Front() const
         {
             return ActiveRange_->Front();
         }
@@ -592,7 +592,7 @@ namespace NRaingee
             } while (!Range_->IsEmpty() && Compare_(val, Range_->Front()));
         }
 
-        inline const TType& Front() const
+        inline TType Front() const
         {
             return Range_->Front();
         }
@@ -641,9 +641,80 @@ namespace NRaingee
             Next();
         }
 
-        inline const TType& Front() const
+        inline TType Front() const
         {
             return Range_->Front();
+        }
+
+        IRangeImpl<TType>* Clone() const;
+    };
+
+    template <class TType, class TOldType, class TUnaryOp>
+    class TTransformedRangeImpl: public IRangeImpl<TType>
+    {
+        IRangeImpl<TOldType>* const Range_;
+        TUnaryOp Op_;
+
+    public:
+        template <class TAssert>
+        TTransformedRangeImpl(TRange<TOldType, TAssert>& range, TUnaryOp op);
+
+        inline ~TTransformedRangeImpl()
+        {
+            delete Range_;
+        }
+
+        inline bool IsEmpty() const
+        {
+            return Range_->IsEmpty();
+        }
+
+        inline void Pop()
+        {
+            Range_->Pop();
+        }
+
+        inline TType Front() const
+        {
+            return Op_(Range_->Front());
+        }
+
+        IRangeImpl<TType>* Clone() const;
+    };
+
+    template <class TType, class TFirstType, class TSecondType,
+        class TBinaryOp>
+    class TTransformedRangesImpl: public IRangeImpl<TType>
+    {
+        IRangeImpl<TFirstType>* const First_;
+        IRangeImpl<TSecondType>* const Second_;
+        TBinaryOp Op_;
+
+    public:
+        template <class TAssert>
+        TTransformedRangesImpl(TRange<TFirstType, TAssert>& first,
+            TRange<TSecondType, TAssert>& second, TBinaryOp op);
+
+        inline ~TTransformedRangesImpl()
+        {
+            delete First_;
+            delete Second_;
+        }
+
+        inline bool IsEmpty() const
+        {
+            return First_->IsEmpty() || Second_->IsEmpty();
+        }
+
+        inline void Pop()
+        {
+            First_->Pop();
+            Second_->Pop();
+        }
+
+        inline TType Front() const
+        {
+            return Op_(First_->Front(), Second_->Front());
         }
 
         IRangeImpl<TType>* Clone() const;

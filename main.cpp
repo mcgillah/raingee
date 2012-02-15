@@ -120,6 +120,17 @@ int main()
         Check(Size(r & r2) == 2);
         Check(Remove(r, std::bind1st(std::equal_to<int>(), 7)), "1 3 5 9 ");
         Check(Remove(r + r, std::bind2nd(std::modulus<int>(), 3)), "3 9 3 9 ");
+        Check(Transform<bool>(r3, std::bind2nd(std::divides<int>(), 3)),
+            "0 0 1 1 1 ");
+        Check(Transform<int>(r - r, std::bind2nd(std::plus<int>(), 3)), "");
+        Check(Transform<int>(r + r, std::bind2nd(std::minus<int>(), 2)),
+            "-1 1 3 5 7 -1 1 3 5 7 ");
+        Check(Transform<bool>(r, std::bind1st(std::less<int>(), 5)),
+            "0 0 0 1 1 ");
+        Check(Transform<int>(r2, r, std::minus<double>()), "3 2 1 0 ");
+        Check(Transform<int>(r, r, std::multiplies<int>()), "1 9 25 49 81 ");
+        Check(Transform<int>(r, r2 ^ r2, std::less<int>()), "");
+        Check(Transform<int>(r - r, r2, std::less<int>()), "");
     }
 }
 

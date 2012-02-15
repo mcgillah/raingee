@@ -127,7 +127,7 @@ namespace NRaingee
             Impl_->Pop();
         }
 
-        inline const TType& Front() const
+        inline TType Front() const
         {
             TAssert::Assert(Not(BindMember(this, &TRange::IsEmpty)),
                 "TRange::Front called on empty range");
@@ -427,6 +427,37 @@ namespace NRaingee
         return TRange<TType, TAssert>(range.Release());
     }
 
+    template <class TType, class TOldType, class TAssert, class TUnaryOp>
+    static inline TRange<TType, TAssert> Transform(
+        TRange<TOldType, TAssert> range, TUnaryOp op)
+    {
+        TRange<TType, TAssert> result;
+        if (!range.IsEmpty())
+        {
+            TRange<TType, TAssert>(
+                new TTransformedRangeImpl<TType, TOldType, TUnaryOp>(range,
+                    op)).Swap(result);
+        }
+        return result;
+    }
+
+    template <class TType, class TFirstType, class TSecondType, class TAssert,
+        class TBinaryOp>
+    static inline TRange<TType, TAssert> Transform(
+        TRange<TFirstType, TAssert> first,
+        TRange<TSecondType, TAssert> second,
+        TBinaryOp op)
+    {
+        TRange<TType, TAssert> result;
+        if (!(first.IsEmpty() || second.IsEmpty()))
+        {
+            TRange<TType, TAssert>(new TTransformedRangesImpl<TType,
+                TFirstType, TSecondType, TBinaryOp>(first, second, op)).Swap(
+                    result);
+        }
+        return result;
+    }
+
     template <class TType, class TAssert>
     static inline typename TRange<TType, TAssert>::TSizeType_ Size(
         TRange<TType, TAssert> range)
@@ -449,7 +480,8 @@ namespace NRaingee
     }
 
     // Complex ranges c'tors
-    template <class TType, class TCounter> template <class TAssert>
+    template <class TType, class TCounter>
+    template <class TAssert>
     TRepeatedRangeImpl<TType, TCounter>::TRepeatedRangeImpl(
         TRange<TType, TAssert>& range,
         TRange<TType, TAssert>& current,
@@ -468,7 +500,8 @@ namespace NRaingee
         return new TRepeatedRangeImpl(range, current, Counter_);
     }
 
-    template <class TType> template <class TAssert>
+    template <class TType>
+    template <class TAssert>
     TConcatenatedRangesImpl<TType>::TConcatenatedRangesImpl(
         IRangeImpl<TType>* first, TRange<TType, TAssert>& second)
         : First_(first)
@@ -477,7 +510,8 @@ namespace NRaingee
     {
     }
 
-    template <class TType> template <class TAssert>
+    template <class TType>
+    template <class TAssert>
     TConcatenatedRangesImpl<TType>::TConcatenatedRangesImpl(
         TRange<TType, TAssert>& first, TRange<TType, TAssert>& second)
         : First_(first.Release())
@@ -501,7 +535,8 @@ namespace NRaingee
         }
     }
 
-    template <class TType, class TCompare> template <class TAssert>
+    template <class TType, class TCompare>
+    template <class TAssert>
     TComplementedRangesImpl<TType, TCompare>::TComplementedRangesImpl(
         IRangeImpl<TType>* first,
         TRange<TType, TAssert>& second,
@@ -513,7 +548,8 @@ namespace NRaingee
         Next();
     }
 
-    template <class TType, class TCompare> template <class TAssert>
+    template <class TType, class TCompare>
+    template <class TAssert>
     TComplementedRangesImpl<TType, TCompare>::TComplementedRangesImpl(
         TRange<TType, TAssert>& first,
         TRange<TType, TAssert>& second,
@@ -540,7 +576,8 @@ namespace NRaingee
         }
     }
 
-    template <class TType, class TCompare> template <class TAssert>
+    template <class TType, class TCompare>
+    template <class TAssert>
     TUnitedRangesImpl<TType, TCompare>::TUnitedRangesImpl(
         IRangeImpl<TType>* first,
         TRange<TType, TAssert>& second,
@@ -555,7 +592,8 @@ namespace NRaingee
     {
     }
 
-    template <class TType, class TCompare> template <class TAssert>
+    template <class TType, class TCompare>
+    template <class TAssert>
     TUnitedRangesImpl<TType, TCompare>::TUnitedRangesImpl(
         TRange<TType, TAssert>& first,
         TRange<TType, TAssert>& second,
@@ -589,7 +627,8 @@ namespace NRaingee
         }
     }
 
-    template <class TType, class TCompare> template <class TAssert>
+    template <class TType, class TCompare>
+    template <class TAssert>
     TIntersectedRangesImpl<TType, TCompare>::TIntersectedRangesImpl(
         IRangeImpl<TType>* first,
         TRange<TType, TAssert>& second,
@@ -601,7 +640,8 @@ namespace NRaingee
         Next();
     }
 
-    template <class TType, class TCompare> template <class TAssert>
+    template <class TType, class TCompare>
+    template <class TAssert>
     TIntersectedRangesImpl<TType, TCompare>::TIntersectedRangesImpl(
         TRange<TType, TAssert>& first,
         TRange<TType, TAssert>& second,
@@ -621,7 +661,8 @@ namespace NRaingee
         return new TIntersectedRangesImpl(first, second, Compare_);
     }
 
-    template <class TType, class TCompare> template <class TAssert>
+    template <class TType, class TCompare>
+    template <class TAssert>
     TSymmetricDifferenceImpl<TType, TCompare>::TSymmetricDifferenceImpl(
         IRangeImpl<TType>* first,
         TRange<TType, TAssert>& second,
@@ -633,7 +674,8 @@ namespace NRaingee
     {
     }
 
-    template <class TType, class TCompare> template <class TAssert>
+    template <class TType, class TCompare>
+    template <class TAssert>
     TSymmetricDifferenceImpl<TType, TCompare>::TSymmetricDifferenceImpl(
         TRange<TType, TAssert>& first,
         TRange<TType, TAssert>& second,
@@ -664,7 +706,8 @@ namespace NRaingee
         }
     }
 
-    template <class TType, class TCompare> template <class TAssert>
+    template <class TType, class TCompare>
+    template <class TAssert>
     TUniqueRangeImpl<TType, TCompare>::TUniqueRangeImpl(
         TRange<TType, TAssert>& range, TCompare compare)
         : Range_(range.Release())
@@ -679,7 +722,8 @@ namespace NRaingee
         return new TUniqueRangeImpl(range, Compare_);
     }
 
-    template <class TType, class TPredicate> template <class TAssert>
+    template <class TType, class TPredicate>
+    template <class TAssert>
     TRemoveImpl<TType, TPredicate>::TRemoveImpl(
         TRange<TType, TAssert>& range, TPredicate predicate)
         : Range_(range.Release())
@@ -693,6 +737,46 @@ namespace NRaingee
     {
         TRange<TType, TEmptyAssert> range(Range_->Clone());
         return new TRemoveImpl(range, Predicate_);
+    }
+
+    template <class TType, class TOldType, class TUnaryOp>
+    template <class TAssert>
+    TTransformedRangeImpl<TType, TOldType, TUnaryOp>::TTransformedRangeImpl(
+        TRange<TOldType, TAssert>& range, TUnaryOp op)
+        : Range_(range.Release())
+        , Op_(op)
+    {
+    }
+
+    template <class TType, class TOldType, class TUnaryOp>
+    IRangeImpl<TType>*
+    TTransformedRangeImpl<TType, TOldType, TUnaryOp>::Clone() const
+    {
+        TRange<TOldType, TEmptyAssert> range(Range_->Clone());
+        return new TTransformedRangeImpl(range, Op_);
+    }
+
+    template <class TType, class TFirstType, class TSecondType,
+        class TBinaryOp>
+    template <class TAssert>
+    TTransformedRangesImpl<TType, TFirstType, TSecondType, TBinaryOp>::
+        TTransformedRangesImpl(TRange<TFirstType, TAssert>& first,
+            TRange<TSecondType, TAssert>& second, TBinaryOp op)
+        : First_(first.Release())
+        , Second_(second.Release())
+        , Op_(op)
+    {
+    }
+
+    template <class TType, class TFirstType, class TSecondType,
+        class TBinaryOp>
+    IRangeImpl<TType>*
+    TTransformedRangesImpl<TType, TFirstType, TSecondType, TBinaryOp>::
+        Clone() const
+    {
+        TRange<TFirstType, TEmptyAssert> first(First_->Clone());
+        TRange<TSecondType, TEmptyAssert> second(Second_->Clone());
+        return new TTransformedRangesImpl(first, second, Op_);
     }
 }
 
