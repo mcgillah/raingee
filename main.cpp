@@ -30,6 +30,7 @@ void Check(TRange<TType> r, const char*)
 
 #include <iostream>
 #include <sstream>
+#include <utility>
 
 const int Cycles = 1;
 
@@ -40,6 +41,18 @@ std::string PrintRange(TRange<TType> range)
     while(!range.IsEmpty())
     {
         str << range.Front() << ' ';
+        range.Pop();
+    }
+    return str.str();
+}
+
+template <class TType1, class TType2>
+std::string PrintRange(TRange<std::pair<TType1, TType2> > range)
+{
+    std::ostringstream str;
+    while(!range.IsEmpty())
+    {
+        str << range.Front().first << ':' << range.Front().second << ' ';
         range.Pop();
     }
     return str.str();
@@ -114,6 +127,10 @@ int main()
         Check((r + r2 + r3) * 0, "");
         Check((r | r2 | r3) ^ (r3 | r2 | r), "");
         Check((r ^ r) | (r2 ^ r2) | (r3 ^ r3), "");
+        Check(r2 - TRange<int>(5) * 4, "4 6 7 ");
+        // TODO: allow infinite counter in the next two lines
+        Check(r - TRange<int>(3) * 6, "1 5 7 9 ");
+        Check(r2 & (TRange<int>(6) * 4), "6 ");
         Check(Size(r ^ r) == 0);
         Check(Size(r) == 5);
         Check(Size(r * 3) == 15);
@@ -131,6 +148,9 @@ int main()
         Check(Transform<int>(r, r, std::multiplies<int>()), "1 9 25 49 81 ");
         Check(Transform<int>(r, r2 ^ r2, std::less<int>()), "");
         Check(Transform<int>(r - r, r2, std::less<int>()), "");
+        Check(Transform<std::pair<int, int> >(
+            TRange<int>(3) * TInfiniteCounter(), r, std::make_pair<int, int>),
+            "3:1 3:3 3:5 3:7 3:9 ");
     }
 }
 
