@@ -719,6 +719,102 @@ namespace NRaingee
 
         IRangeImpl<TType>* Clone() const;
     };
+
+    template <class TType, class TInserter, class TDelimiter,
+        class TEscapeChar, class TOldType>
+    class TSplittedRangeImpl: public IRangeImpl<TType>
+    {
+        IRangeImpl<TOldType>* const Range_;
+        TType Value_;
+        TInserter Inserter_;
+        const TDelimiter Delimiter_;
+        const TEscapeChar EscapeChar_;
+        bool Empty_;
+
+        void Next()
+        {
+            while (!Range_->IsEmpty())
+            {
+                const TOldType& front = Range_->Front();
+                if (Delimiter_ == front)
+                {
+                    if (Empty_)
+                    {
+                        Range_->Pop();
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                else if (EscapeChar_ == front)
+                {
+                    Empty_ = false;
+                    Range_->Pop();
+                    if (Range_->IsEmpty())
+                    {
+                        Inserter_ = front;
+                    }
+                    else
+                    {
+                        Inserter_ = Range_->Front();
+                        Range_->Pop();
+                    }
+                }
+                else
+                {
+                    Empty_ = false;
+                    Inserter_ = front;
+                    Range_->Pop();
+                }
+            }
+        }
+
+        template <class TAssert>
+        TSplittedRangeImpl(TRange<TOldType, TAssert>& range, TType value,
+            TDelimiter delimiter, TEscapeChar escapeChar);
+
+    public:
+        template <class TAssert>
+        TSplittedRangeImpl(TRange<TOldType, TAssert>& range,
+            TDelimiter delimiter, TEscapeChar escapeChar);
+
+        inline ~TSplittedRangeImpl()
+        {
+            delete Range_;
+        }
+
+        inline bool IsEmpty() const
+        {
+            return Empty_;
+        }
+
+        inline void Pop()
+        {
+            Empty_ = true;
+            if (!Range_->IsEmpty())
+            {
+                Value_ = TType();
+                Next();
+            }
+        }
+
+        inline TType Front() const
+        {
+            return Value_;
+        }
+
+        IRangeImpl<TType>* Clone() const;
+    };
+
+    struct TFakeEscapeChar
+    {
+        template <class TType>
+        inline bool operator == (TType) const
+        {
+            return false;
+        }
+    };
 }
 
 #endif

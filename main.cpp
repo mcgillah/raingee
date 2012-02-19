@@ -59,7 +59,7 @@ std::string PrintRange(TRange<std::pair<TType1, TType2> > range)
 }
 
 template <class TType>
-void Check(TRange<TType> r, const char* b)
+void Check(TRange<TType> r, const std::string& b)
 {
     static int i = 0;
     ++i;
@@ -81,6 +81,8 @@ int main()
     TRange<int> r2(b, b + sizeof(b) / sizeof(b[0]));
     int c[] = {1, 2, 3, 4, 9};
     TRange<int> r3(c, c + sizeof(c) / sizeof(c[0]));
+    const char p[] = "/usr/portage//distfiles/file\\/.cpp\\";
+    const char p2[] = "portage///distfiles/file\\/.cpp/";
     for (int i = 0; i < Cycles; ++i)
     {
         Check(TRange<int>(2, 2), "2 2 ");
@@ -151,6 +153,18 @@ int main()
         Check(Transform<std::pair<int, int> >(
             TRange<int>(3) * TInfiniteCounter(), r, std::make_pair<int, int>),
             "3:1 3:3 3:5 3:7 3:9 ");
+        Check(Split<std::string>(
+            TRange<char>(p, p + sizeof(p) / sizeof(p[0]) - 1), '/'),
+            "usr portage distfiles file\\ .cpp\\ ");
+        Check(Split<std::string>(
+            TRange<char>(p, p + sizeof(p) / sizeof(p[0]) - 1), '/', '\\'),
+            "usr portage distfiles file/.cpp\\ ");
+        Check(Split<std::string>(
+            TRange<char>(p2, p2 + sizeof(p2) / sizeof(p2[0]) - 1), '/'),
+            "portage distfiles file\\ .cpp ");
+        Check(Split<std::string>(
+            TRange<char>(p2, p2 + sizeof(p2) / sizeof(p2[0]) - 1), '/', '\\'),
+            "portage distfiles file/.cpp ");
     }
 }
 

@@ -21,6 +21,7 @@
 #define __RANGE_HPP_2012_01_31__
 
 #include <functional>
+#include <iterator>
 #include <limits>
 
 #include "emptyassert.hpp"
@@ -458,6 +459,47 @@ namespace NRaingee
         return result;
     }
 
+    template <class TType, class TInserter, class TDelimiter,
+        class TEscapeChar, class TOldType, class TAssert>
+    static inline TRange<TType, TAssert> Split(TRange<TOldType, TAssert> range,
+        TDelimiter delimiter, TEscapeChar escapeChar)
+    {
+        TRange<TType, TAssert> result;
+        if (!range.IsEmpty())
+        {
+            TRange<TType, TAssert>(new TSplittedRangeImpl<TType, TInserter,
+                TDelimiter, TEscapeChar, TOldType>(range, delimiter,
+                    escapeChar)).Swap(result);
+        }
+        return result;
+    }
+
+    template <class TType, class TInserter, class TDelimiter, class TOldType,
+        class TAssert>
+    static inline TRange<TType, TAssert> Split(TRange<TOldType, TAssert> range,
+        TDelimiter delimiter)
+    {
+        return Split<TType, TInserter, TDelimiter, TFakeEscapeChar, TOldType,
+            TAssert>(range, delimiter, TFakeEscapeChar());
+    }
+
+    template <class TType, class TDelimiter, class TEscapeChar, class TOldType,
+        class TAssert>
+    static inline TRange<TType, TAssert> Split(TRange<TOldType, TAssert> range,
+        TDelimiter delimiter, TEscapeChar escapeChar)
+    {
+        return Split<TType, std::back_insert_iterator<TType>, TDelimiter,
+            TEscapeChar, TOldType, TAssert>(range, delimiter, escapeChar);
+    }
+
+    template <class TType, class TDelimiter, class TOldType, class TAssert>
+    static inline TRange<TType, TAssert> Split(TRange<TOldType, TAssert> range,
+        TDelimiter delimiter)
+    {
+        return Split<TType, TDelimiter, TFakeEscapeChar, TOldType, TAssert>(
+            range, delimiter, TFakeEscapeChar());
+    }
+
     template <class TType, class TAssert>
     static inline typename TRange<TType, TAssert>::TSizeType_ Size(
         TRange<TType, TAssert> range)
@@ -777,6 +819,46 @@ namespace NRaingee
         TRange<TFirstType, TEmptyAssert> first(First_->Clone());
         TRange<TSecondType, TEmptyAssert> second(Second_->Clone());
         return new TTransformedRangesImpl(first, second, Op_);
+    }
+
+    template <class TType, class TInserter, class TDelimiter,
+        class TEscapeChar, class TOldType>
+    template <class TAssert>
+    TSplittedRangeImpl<TType, TInserter, TDelimiter, TEscapeChar, TOldType>::
+        TSplittedRangeImpl(TRange<TOldType, TAssert>& range,
+            TDelimiter delimiter, TEscapeChar escapeChar)
+            : Range_(range.Release())
+            , Inserter_(Value_)
+            , Delimiter_(delimiter)
+            , EscapeChar_(escapeChar)
+            , Empty_(true)
+    {
+        Next();
+    }
+
+    template <class TType, class TInserter, class TDelimiter,
+        class TEscapeChar, class TOldType>
+    template <class TAssert>
+    TSplittedRangeImpl<TType, TInserter, TDelimiter, TEscapeChar, TOldType>::
+        TSplittedRangeImpl(TRange<TOldType, TAssert>& range, TType value,
+            TDelimiter delimiter, TEscapeChar escapeChar)
+            : Range_(range.Release())
+            , Value_(value)
+            , Inserter_(Value_)
+            , Delimiter_(delimiter)
+            , EscapeChar_(escapeChar)
+            , Empty_(false)
+    {
+    }
+
+    template <class TType, class TInserter, class TDelimiter,
+        class TEscapeChar, class TOldType>
+    IRangeImpl<TType>*
+    TSplittedRangeImpl<TType, TInserter, TDelimiter, TEscapeChar, TOldType>::
+        Clone() const
+    {
+        TRange<TOldType, TEmptyAssert> range(Range_->Clone());
+        return new TSplittedRangeImpl(range, Value_, Delimiter_, EscapeChar_);
     }
 }
 
