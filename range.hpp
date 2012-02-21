@@ -24,7 +24,10 @@
 #include <iterator>
 #include <limits>
 
+#include <reinvented-wheels/enableif.hpp>
+
 #include "emptyassert.hpp"
+#include "iscallable.hpp"
 #include "predicates.hpp"
 #include "rangeimpl.hpp"
 
@@ -41,36 +44,9 @@ namespace NRaingee
             Impl_ = 0;
         }
 
-        template <unsigned N>
-        struct TIntToType
-        {
-        };
-
-        template <class TInputIterator>
-        static inline IRangeImpl<TType>* MakeImpl(TInputIterator first,
-            TInputIterator last, TIntToType<0>)
-        {
-            if (first == last)
-            {
-                return 0;
-            }
-            else
-            {
-                return new TSequenceRangeImpl<TType>(first, last);
-            }
-        }
-
     public:
         typedef typename TSequenceRangeImpl<TType>::TSizeType_ TSizeType_;
 
-    private:
-        static inline IRangeImpl<TType>* MakeImpl(TSizeType_ size,
-            const TType& value, TIntToType<1>)
-        {
-            return size ? new TSequenceRangeImpl<TType>(size, value) : 0;
-        }
-
-    public:
         inline explicit TRange(IRangeImpl<TType>* impl = 0)
             : Impl_(impl)
         {
@@ -82,14 +58,27 @@ namespace NRaingee
         }
 
         inline TRange(TSizeType_ size, const TType& value)
-            : Impl_(MakeImpl(size, value, TIntToType<1>()))
+            : Impl_(size ? new TSequenceRangeImpl<TType>(size, value) : 0)
         {
         }
 
         template <class TInputIterator>
-        inline TRange(TInputIterator first, TInputIterator last)
-            : Impl_(MakeImpl(first, last,
-                TIntToType<std::numeric_limits<TInputIterator>::is_integer>()))
+        inline TRange(TInputIterator first, TInputIterator last,
+            typename NReinventedWheels::TEnableIf<
+                !std::numeric_limits<TInputIterator>::is_integer
+                && !TIsCallable<TInputIterator>::Value_>::TType_* = 0)
+            : Impl_(first == last ?
+                0 : new TSequenceRangeImpl<TType>(first, last))
+        {
+        }
+
+        template <class TGenerator, class TCounter>
+        inline TRange(TGenerator generator, TCounter counter,
+            typename NReinventedWheels::TEnableIf<
+                TIsCallable<TGenerator>::Value_>::TType_* = 0)
+            : Impl_(!counter ?
+                0 : new TGeneratedRangeImpl<TType, TGenerator, TCounter>(
+                    generator, counter))
         {
         }
 

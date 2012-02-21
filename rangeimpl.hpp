@@ -815,6 +815,62 @@ namespace NRaingee
             return false;
         }
     };
+
+    template <class TType, class TGenerator, class TCounter>
+    class TGeneratedRangeImpl: public IRangeImpl<TType>
+    {
+        TGenerator Generator_;
+        TCounter Counter_;
+        TType Value_;
+        bool Empty_;
+
+        inline TGeneratedRangeImpl(TType value, TGenerator generator,
+            TCounter counter)
+            : Generator_(generator)
+            , Counter_(counter)
+            , Value_(value)
+            , Empty_(false)
+        {
+        }
+
+    public:
+        inline TGeneratedRangeImpl(TGenerator generator, TCounter counter)
+            : Generator_(generator)
+            , Counter_(counter)
+            , Value_(Generator_())
+            , Empty_(false)
+        {
+            --Counter_;
+        }
+
+        inline bool IsEmpty() const
+        {
+            return Empty_;
+        }
+
+        inline void Pop()
+        {
+            Value_ = Generator_();
+            if (!Counter_)
+            {
+                Empty_ = true;
+            }
+            else
+            {
+                --Counter_;
+            }
+        }
+
+        inline TType Front() const
+        {
+            return Value_;
+        }
+
+        inline IRangeImpl<TType>* Clone() const
+        {
+            return new TGeneratedRangeImpl(Value_, Generator_, Counter_);
+        }
+    };
 }
 
 #endif

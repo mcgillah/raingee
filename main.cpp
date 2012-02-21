@@ -73,6 +73,22 @@ void Check(TRange<TType> r, const std::string& b)
 
 #endif
 
+class TSequenceGenerator
+{
+    int I_;
+
+public:
+    TSequenceGenerator(int i = 0)
+        : I_(i)
+    {
+    }
+
+    int operator ()()
+    {
+        return ++I_;
+    }
+};
+
 int main()
 {
     int a[] = {1, 3, 5, 7, 9};
@@ -153,6 +169,13 @@ int main()
         Check(Transform<std::pair<int, int> >(
             TRange<int>(3) * TInfiniteCounter(), r, std::make_pair<int, int>),
             "3:1 3:3 3:5 3:7 3:9 ");
+        Check(Transform<std::pair<int, int> >(TRange<int>(
+                TSequenceGenerator(2), 4), r, std::make_pair<int, int>),
+            "3:1 4:3 5:5 6:7 ");
+        Check(Transform<std::pair<int, int> >(TRange<int>(
+                TSequenceGenerator(), TInfiniteCounter()), r,
+                std::make_pair<int, int>),
+            "1:1 2:3 3:5 4:7 5:9 ");
         Check(Split<std::string>(
             TRange<char>(p, p + sizeof(p) / sizeof(p[0]) - 1), '/'),
             "usr portage distfiles file\\ .cpp\\ ");
