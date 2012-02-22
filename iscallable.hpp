@@ -20,6 +20,8 @@
 #ifndef __ISCALLABLE_HPP_2012_02_22__
 #define __ISCALLABLE_HPP_2012_02_22__
 
+#include <reinvented-wheels/enableif.hpp>
+
 namespace NRaingee
 {
     template <class TFunctor>
@@ -32,7 +34,8 @@ namespace NRaingee
         };
 
         template <class T>
-        static char Test(TIntToType<sizeof((*((T*)0))())>*);
+        static char Test(typename NReinventedWheels::
+            TEnableIf<sizeof((*((T*)0))())>::TType_*);
 
         typedef char TTwoChars[2];
         template <class>
